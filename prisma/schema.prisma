@@ -1,0 +1,78 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// 1. User
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  username  String   @unique
+  password  String
+  name      String
+  role      String   @default("CASHIER") // ADMIN, MANAGER, CASHIER, KITCHEN_STAFF
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// 2. Menu Management
+model MenuCategory {
+  id        String     @id @default(cuid())
+  name      String
+  slug      String     @unique
+  items     MenuItem[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+}
+
+model MenuItem {
+  id          String       @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  image       String?
+  available   Boolean      @default(true)
+  categoryId  String
+  category    MenuCategory @relation(fields: [categoryId], references: [id])
+  orderItems  OrderItem[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+// 3. Order Management
+model Order {
+  id          String      @id @default(cuid())
+  status      String      @default("PENDING") // PENDING, PREPARING, READY, COMPLETED, CANCELLED
+  totalAmount Float
+  items       OrderItem[]
+  userId      String?
+  user        User?       @relation(fields: [userId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model OrderItem {
+  id         String   @id @default(cuid())
+  orderId    String
+  order      Order    @relation(fields: [orderId], references: [id])
+  menuItemId String
+  menuItem   MenuItem @relation(fields: [menuItemId], references: [id])
+  quantity   Int
+  price      Float // Snapshot price
+}
+
+// 4. Inventory Management
+model InventoryItem {
+  id        String   @id @default(cuid())
+  name      String
+  quantity  Int
+  unit      String // e.g., 'kg', 'pcs', 'liters'
+  threshold Int // Low stock alert threshold
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
