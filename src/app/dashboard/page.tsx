@@ -5,12 +5,22 @@ import {
   ChefHat, 
   ClipboardList, 
   UtensilsCrossed, 
-  Package 
+  Package,
+  TrendingUp,
+  ShoppingCart,
+  AlertTriangle,
+  FileText
 } from "lucide-react";
+import { getDashboardStats } from "@/actions/analytics";
 
 export default async function DashboardPage() {
   const session = await auth();
   const isAdminOrManager = session?.user?.role === "ADMIN" || session?.user?.role === "MANAGER";
+  
+  const statsResult = await getDashboardStats();
+  const stats = (statsResult.success && statsResult.data) 
+    ? statsResult.data 
+    : { todayRevenue: 0, todayOrders: 0, lowStockAlerts: 0 };
 
   const quickActions = [
     {
@@ -41,6 +51,13 @@ export default async function DashboardPage() {
       color: "bg-purple-500",
       description: "Manage stock levels"
     },
+    {
+      title: "Reports",
+      href: "/dashboard/reports",
+      icon: FileText,
+      color: "bg-amber-500",
+      description: "View sales analytics"
+    },
   ];
 
   if (isAdminOrManager) {
@@ -52,6 +69,30 @@ export default async function DashboardPage() {
       description: "Update menu items and prices"
     });
   }
+
+  const metrics = [
+    {
+      label: "Today's Revenue",
+      value: `$${stats.todayRevenue.toFixed(2)}`,
+      icon: TrendingUp,
+      color: "text-green-600",
+      bg: "bg-green-100"
+    },
+    {
+      label: "Today's Orders",
+      value: stats.todayOrders.toString(),
+      icon: ShoppingCart,
+      color: "text-blue-600",
+      bg: "bg-blue-100"
+    },
+    {
+      label: "Low Stock Alerts",
+      value: stats.lowStockAlerts.toString(),
+      icon: AlertTriangle,
+      color: stats.lowStockAlerts > 0 ? "text-red-600" : "text-gray-400",
+      bg: stats.lowStockAlerts > 0 ? "bg-red-100" : "bg-gray-100"
+    }
+  ];
 
   return (
     <div className="p-8">
@@ -75,6 +116,22 @@ export default async function DashboardPage() {
         </form>
       </div>
 
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+        {metrics.map((metric) => (
+          <div key={metric.label} className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 flex items-center gap-4">
+             <div className={`w-12 h-12 rounded-full ${metric.bg} ${metric.color} flex items-center justify-center`}>
+                <metric.icon className="w-6 h-6" />
+             </div>
+             <div>
+                <p className="text-sm font-medium text-gray-500">{metric.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{metric.value}</p>
+             </div>
+          </div>
+        ))}
+      </div>
+
+      <h2 className="text-xl font-bold text-gray-900 mb-6">Quick Actions</h2>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {quickActions.map((action) => (
           <Link 

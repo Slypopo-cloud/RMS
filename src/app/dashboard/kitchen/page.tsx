@@ -13,15 +13,17 @@ export default async function KitchenPage() {
         },
         include: {
             items: { include: { menuItem: true } },
-            user: true
+            user: {
+                select: { name: true, username: true }
+            }
         },
-        orderBy: { createdAt: "asc" } // Oldest first for kitchen
+        orderBy: { createdAt: "asc" }
     });
 
     return (
         <div className="h-full p-6">
             <h1 className="text-2xl font-bold mb-6">Kitchen Display System (KDS)</h1>
-            <KitchenDisplay initialOrders={orders} />
+            <KitchenDisplay initialOrders={orders as any} />
         </div>
     );
 }

@@ -18,24 +18,62 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   try {
-    const order = await prisma.order.create({
-      data: {
-        totalAmount,
-        userId: session.user.id,
-        items: {
-          create: items.map((item) => ({
-            menuItemId: item.menuItemId,
-            quantity: item.quantity,
-            price: item.price,
-          })),
+    // Fetch recipes for the items in the order
+    const menuItemIds = items.map(i => i.menuItemId);
+    const recipes = await prisma.recipe.findMany({
+      where: { menuItemId: { in: menuItemIds } },
+      include: { ingredients: true }
+    });
+
+    // Calculate total inventory deductions
+    const inventoryUpdates: Record<string, number> = {};
+    items.forEach(orderItem => {
+      const recipe = recipes.find((r: any) => r.menuItemId === orderItem.menuItemId);
+      if (recipe) {
+        recipe.ingredients.forEach((ingredient: any) => {
+          const totalDeduction = ingredient.quantity * orderItem.quantity;
+          inventoryUpdates[ingredient.inventoryItemId] = (inventoryUpdates[ingredient.inventoryItemId] || 0) + totalDeduction;
+        });
+      }
+    });
+
+    const result = await prisma.$transaction(async (tx) => {
+      // 1. Create the order
+      const order = await tx.order.create({
+        data: {
+          totalAmount,
+          userId: session.user.id,
+          items: {
+            create: items.map((item) => ({
+              menuItemId: item.menuItemId,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
         },
-      },
+      });
+
+      // 2. Update inventory for each required ingredient
+      for (const [inventoryItemId, deduction] of Object.entries(inventoryUpdates)) {
+        await tx.inventoryItem.update({
+          where: { id: inventoryItemId },
+          data: {
+            quantity: {
+              decrement: Math.round(deduction) // Quantity is Int in schema
+            }
+          }
+        });
+      }
+
+      return order;
     });
 
     revalidatePath("/dashboard/pos");
     revalidatePath("/dashboard/kitchen");
     revalidatePath("/dashboard/orders");
-    return { success: true, message: "Order placed successfully", orderId: order.id };
+    revalidatePath("/dashboard/inventory");
+
+    return { success: true, message: "Order placed successfully", orderId: result.id };
   } catch (error) {
     console.error("Create Order Error:", error);
     return { success: false, error: "Failed to create order" };

@@ -1,7 +1,9 @@
-
 import { getCategories, getMenuItems } from "@/actions/menu";
+import { getInventory } from "@/actions/inventory";
+import { getRecipes } from "@/actions/recipe";
 import CategoryManager from "@/components/menu/category-manager";
 import ItemManager from "@/components/menu/item-manager";
+import RecipeManager from "@/components/inventory/recipe-manager";
 import Link from "next/link";
 
 
@@ -12,9 +14,13 @@ export default async function MenuPage(props: { searchParams: Promise<{ tab?: st
 
   const categoriesResult = await getCategories();
   const itemsResult = await getMenuItems();
+  const inventoryResult = await getInventory();
+  const recipesResult = await getRecipes();
 
   const categories = categoriesResult.success ? categoriesResult.data : [];
   const items = itemsResult.success ? itemsResult.data : [];
+  const inventoryItems = inventoryResult.success ? inventoryResult.data : [];
+  const existingRecipes = recipesResult.success ? (recipesResult.data as any) : [];
 
   return (
     <div className="p-8">
@@ -41,13 +47,27 @@ export default async function MenuPage(props: { searchParams: Promise<{ tab?: st
         >
           Menu Items
         </Link>
+        <Link
+          href="/dashboard/menu?tab=recipes"
+          className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+            activeTab === "recipes"
+              ? "border-blue-500 text-blue-600"
+              : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+          }`}
+        >
+          Recipes
+        </Link>
       </div>
 
       <div>
-        {activeTab === "categories" ? (
-          <CategoryManager categories={categories} />
-        ) : (
-          <ItemManager items={items} categories={categories} />
+        {activeTab === "categories" && <CategoryManager categories={categories as any} />}
+        {activeTab === "items" && <ItemManager items={items as any} categories={categories as any} />}
+        {activeTab === "recipes" && (
+            <RecipeManager 
+                menuItems={items as any} 
+                inventoryItems={inventoryItems as any} 
+                existingRecipes={existingRecipes as any} 
+            />
         )}
       </div>
     </div>
