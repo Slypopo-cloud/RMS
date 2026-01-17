@@ -5,9 +5,23 @@ import prisma from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { auth } from "@/auth";
 
-export async function createOrder(items: { menuItemId: string; quantity: number; price: number }[]) {
+interface RecipeWithIngredients {
+  id: string;
+  menuItemId: string;
+  ingredients: {
+    id: string;
+    recipeId: string;
+    inventoryItemId: string;
+    quantity: number;
+  }[];
+}
+
+export async function createOrder(items: { menuItemId: string; quantity: number; price: number }[], type: "DINE_IN" | "TAKEAWAY" = "DINE_IN", tableId?: string) {
   const session = await auth();
-  if (!session?.user) {
+  const role = session?.user?.role;
+  const allowedRoles = ["ADMIN", "MANAGER", "CASHIER"];
+
+  if (!role || !allowedRoles.includes(role)) {
     return { success: false, error: "Unauthorized" };
   }
 
@@ -18,6 +32,14 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
   const totalAmount = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   try {
+    // If tableId is provided, mark table as OCCUPIED
+    if (tableId && type === "DINE_IN") {
+        await prisma.restaurantTable.update({
+            where: { id: tableId },
+            data: { status: "OCCUPIED" }
+        });
+    }
+
     // Fetch recipes for the items in the order
     const menuItemIds = items.map(i => i.menuItemId);
     const recipes = await prisma.recipe.findMany({
@@ -28,9 +50,9 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
     // Calculate total inventory deductions
     const inventoryUpdates: Record<string, number> = {};
     items.forEach(orderItem => {
-      const recipe = recipes.find((r: any) => r.menuItemId === orderItem.menuItemId);
+      const recipe = recipes.find((r: RecipeWithIngredients) => r.menuItemId === orderItem.menuItemId);
       if (recipe) {
-        recipe.ingredients.forEach((ingredient: any) => {
+        recipe.ingredients.forEach((ingredient) => {
           const totalDeduction = ingredient.quantity * orderItem.quantity;
           inventoryUpdates[ingredient.inventoryItemId] = (inventoryUpdates[ingredient.inventoryItemId] || 0) + totalDeduction;
         });
@@ -42,6 +64,8 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
       const order = await tx.order.create({
         data: {
           totalAmount,
+          type,
+          tableId,
           userId: session.user.id,
           items: {
             create: items.map((item) => ({
@@ -81,6 +105,13 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
 }
 
 export async function getOrders(status?: string) {
+  const session = await auth();
+  const role = session?.user?.role;
+  const allowedRoles = ["ADMIN", "MANAGER", "CASHIER"];
+  if (!role || !allowedRoles.includes(role)) {
+    return { success: false, error: "Unauthorized" };
+  }
+
   try {
     const where = status ? { status } : {};
     const orders = await prisma.order.findMany({
@@ -98,7 +129,7 @@ export async function getOrders(status?: string) {
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: orders };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to fetch orders" };
   }
 }
@@ -122,7 +153,7 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
         revalidatePath("/dashboard/kitchen");
         revalidatePath("/dashboard/orders");
         return { success: true, message: "Order status updated" };
-    } catch (error) {
+    } catch {
          return { success: false, error: "Failed to update order status" };
     }
 }

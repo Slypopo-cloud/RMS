@@ -31,12 +31,12 @@ export async function getCategories() {
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: categories };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to fetch categories" };
   }
 }
 
-export async function createCategory(prevState: any, formData: FormData) {
+export async function createCategory(prevState: unknown, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN" && session?.user?.role !== "MANAGER") {
     return { success: false, error: "Unauthorized" };
@@ -57,7 +57,7 @@ export async function createCategory(prevState: any, formData: FormData) {
     });
     revalidatePath("/dashboard/menu");
     return { success: true, message: "Category created" };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to create category (Slug might be taken)" };
   }
 }
@@ -72,7 +72,7 @@ export async function deleteCategory(id: string) {
     await prisma.menuCategory.delete({ where: { id } });
     revalidatePath("/dashboard/menu");
     return { success: true, message: "Category deleted" };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to delete category" };
   }
 }
@@ -86,12 +86,12 @@ export async function getMenuItems() {
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: items };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to fetch menu items" };
   }
 }
 
-export async function createMenuItem(prevState: any, formData: FormData) {
+export async function createMenuItem(prevState: unknown, formData: FormData) {
   const session = await auth();
   if (session?.user?.role !== "ADMIN" && session?.user?.role !== "MANAGER") {
      return { success: false, error: "Unauthorized" };
@@ -117,7 +117,7 @@ export async function createMenuItem(prevState: any, formData: FormData) {
     revalidatePath("/dashboard/menu");
     return { success: true, message: "Item created" };
 
-  } catch (error) {
+  } catch {
       return { success: false, error: "Failed to create item" };
   }
 }
@@ -132,7 +132,7 @@ export async function deleteMenuItem(id: string) {
       await prisma.menuItem.delete({ where: { id } });
       revalidatePath("/dashboard/menu");
       return { success: true, message: "Item deleted" };
-    } catch (error) {
+    } catch {
       return { success: false, error: "Failed to delete item" };
     }
 }
@@ -150,7 +150,7 @@ export async function toggleItemAvailability(id: string, currentStatus: boolean)
         });
         revalidatePath("/dashboard/menu");
         return { success: true, message: "Status updated" }
-    } catch (error) {
+    } catch {
         return { success: false, error: "Failed to update status" }
     }
 }

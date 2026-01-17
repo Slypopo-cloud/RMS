@@ -19,12 +19,12 @@ export async function getInventory() {
       orderBy: { createdAt: "desc" },
     });
     return { success: true, data: items };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to fetch inventory" };
   }
 }
 
-export async function createInventoryItem(prevState: any, formData: FormData) {
+export async function createInventoryItem(prevState: unknown, formData: FormData) {
   const session = await auth();
     // Allow Admin, Manager, Kitchen Staff to manage inventory? Maybe just Admin/Manager/Kitchen.
   const allowedRoles = ["ADMIN", "MANAGER", "KITCHEN_STAFF"];
@@ -49,7 +49,7 @@ export async function createInventoryItem(prevState: any, formData: FormData) {
     });
     revalidatePath("/dashboard/inventory");
     return { success: true, message: "Item created" };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to create item" };
   }
 }
@@ -68,7 +68,7 @@ export async function updateInventoryItem(id: string, data: { quantity: number }
         });
         revalidatePath("/dashboard/inventory");
         return { success: true, message: "Updated" };
-    } catch (error) {
+    } catch {
         return { success: false, error: "Failed to update" };
     }
 }
@@ -84,7 +84,23 @@ export async function deleteInventoryItem(id: string) {
     await prisma.inventoryItem.delete({ where: { id } });
     revalidatePath("/dashboard/inventory");
     return { success: true, message: "Item deleted" };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to delete item" };
+  }
+}
+
+export async function getLowStockItems() {
+  const session = await auth();
+  if (!session?.user) return { success: false, error: "Unauthorized" };
+
+  try {
+    const items = await prisma.inventoryItem.findMany({
+      where: {
+        quantity: { lte: prisma.inventoryItem.fields.threshold },
+      },
+    });
+    return { success: true, data: items };
+  } catch {
+    return { success: false, error: "Failed to fetch low stock items" };
   }
 }

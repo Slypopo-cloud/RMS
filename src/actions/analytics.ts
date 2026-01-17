@@ -12,7 +12,7 @@ export async function getDashboardStats() {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const [revenueResult, orderCount, lowStockCount] = await Promise.all([
+    const [revenueResult, orderCount, lowStockCount, lowStockItems] = await Promise.all([
       prisma.order.aggregate({
         where: {
           status: "COMPLETED",
@@ -32,6 +32,12 @@ export async function getDashboardStats() {
           quantity: { lte: prisma.inventoryItem.fields.threshold },
         },
       }),
+      prisma.inventoryItem.findMany({
+        where: {
+          quantity: { lte: prisma.inventoryItem.fields.threshold },
+        },
+        take: 6,
+      }),
     ]);
 
     return {
@@ -40,6 +46,7 @@ export async function getDashboardStats() {
         todayRevenue: revenueResult._sum.totalAmount || 0,
         todayOrders: orderCount,
         lowStockAlerts: lowStockCount,
+        lowStockItems: lowStockCount > 0 ? lowStockItems : [],
       },
     };
   } catch (error) {
@@ -75,7 +82,7 @@ export async function getSalesReport(startDate: Date, endDate: Date) {
         });
 
         return { success: true, data: orders };
-    } catch (error) {
-        return { success: false, error: "Failed to fetch sales report" };
-    }
+    } catch {
+    return { success: false, error: "Failed to fetch sales report" };
+  }
 }

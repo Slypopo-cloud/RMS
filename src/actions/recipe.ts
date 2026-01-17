@@ -18,7 +18,7 @@ export async function getRecipes() {
       }
     });
     return { success: true, data: recipes };
-  } catch (error) {
+  } catch {
     return { success: false, error: "Failed to fetch recipes" };
   }
 }
@@ -80,7 +80,7 @@ export async function deleteRecipe(id: string) {
         });
         revalidatePath("/dashboard/menu");
         return { success: true, message: "Recipe deleted" };
-    } catch (error) {
+    } catch {
         return { success: false, error: "Failed to delete recipe" };
     }
 }

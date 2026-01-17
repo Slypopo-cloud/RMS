@@ -7,14 +7,31 @@ export const authConfig = {
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname.startsWith("/admin") || nextUrl.pathname.startsWith("/dashboard");
+      const role = auth?.user?.role;
+      const { pathname } = nextUrl;
+      const isOnDashboard = pathname.startsWith("/dashboard");
       
       if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
+        if (!isLoggedIn) return false;
+
+        // Granular Role-Based Access Control
+        if (pathname.startsWith("/dashboard/reports") || 
+            pathname.startsWith("/dashboard/inventory") || 
+            pathname.startsWith("/dashboard/menu")) {
+          return role === "ADMIN" || role === "MANAGER";
+        }
+
+        if (pathname.startsWith("/dashboard/pos")) {
+          return role === "ADMIN" || role === "MANAGER" || role === "CASHIER";
+        }
+
+        if (pathname.startsWith("/dashboard/kitchen")) {
+          return role === "ADMIN" || role === "MANAGER" || role === "KITCHEN_STAFF";
+        }
+
+        return true; 
       } else if (isLoggedIn) {
-        // Redirect logged-in users away from login page to dashboard
-        if (nextUrl.pathname === "/login") {
+        if (pathname === "/login") {
             return Response.redirect(new URL("/dashboard", nextUrl));
         }
       }

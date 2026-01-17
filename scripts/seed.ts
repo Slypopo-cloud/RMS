@@ -4,19 +4,57 @@ import bcrypt from 'bcryptjs';
 const prisma = new PrismaClient();
 
 async function main() {
-  const email = 'admin@rms.com';
-  const username = 'admin';
-  const password = await bcrypt.hash('admin123', 10);
+  const adminPassword = await bcrypt.hash('admin123', 10);
+  const managerPassword = await bcrypt.hash('manager123', 10);
+  const cashierPassword = await bcrypt.hash('cashier123', 10);
+  const kitchenPassword = await bcrypt.hash('kitchen123', 10);
   
-  const user = await prisma.user.upsert({
-    where: { email },
-    update: { username },
+  // Create Users
+  await prisma.user.upsert({
+    where: { email: 'admin@rms.com' },
+    update: {},
     create: {
-      email,
-      username,
+      email: 'admin@rms.com',
+      username: 'admin',
       name: 'Admin User',
-      password,
+      password: adminPassword,
       role: 'ADMIN',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'manager@rms.com' },
+    update: {},
+    create: {
+      email: 'manager@rms.com',
+      username: 'manager',
+      name: 'Manager User',
+      password: managerPassword,
+      role: 'MANAGER',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'cashier@rms.com' },
+    update: {},
+    create: {
+      email: 'cashier@rms.com',
+      username: 'cashier',
+      name: 'Cashier User',
+      password: cashierPassword,
+      role: 'CASHIER',
+    },
+  });
+
+  await prisma.user.upsert({
+    where: { email: 'kitchen@rms.com' },
+    update: {},
+    create: {
+      email: 'kitchen@rms.com',
+      username: 'kitchen',
+      name: 'Kitchen Staff',
+      password: kitchenPassword,
+      role: 'KITCHEN_STAFF',
     },
   });
   
@@ -73,7 +111,7 @@ async function main() {
     console.log('Added menu items');
   }
 
-  console.log({ user, categories: [beverages, mainCourse] });
+  console.log('Seed completed successfully with multi-role users.');
 }
 
 main()

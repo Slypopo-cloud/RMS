@@ -47,14 +47,17 @@ model MenuItem {
 
 // 3. Order Management
 model Order {
-  id          String      @id @default(cuid())
-  status      String      @default("PENDING") // PENDING, PREPARING, READY, COMPLETED, CANCELLED
+  id          String           @id @default(cuid())
+  status      String           @default("PENDING") // PENDING, PREPARING, READY, COMPLETED, CANCELLED
+  type        String           @default("DINE_IN") // DINE_IN, TAKEAWAY
   totalAmount Float
   items       OrderItem[]
   userId      String?
-  user        User?       @relation(fields: [userId], references: [id])
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  user        User?            @relation(fields: [userId], references: [id])
+  tableId     String?
+  table       RestaurantTable? @relation(fields: [tableId], references: [id])
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model OrderItem {
@@ -96,4 +99,31 @@ model RecipeIngredient {
   inventoryItemId String
   inventoryItem   InventoryItem @relation(fields: [inventoryItemId], references: [id])
   quantity        Float // Quantity required per unit of menu item
+}
+
+// 6. Table & Reservation Management
+model RestaurantTable {
+  id           String        @id @default(cuid())
+  number       String        @unique
+  capacity     Int
+  status       String        @default("AVAILABLE") // AVAILABLE, OCCUPIED, RESERVED, OUT_OF_ORDER
+  orders       Order[]
+  reservations Reservation[]
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+}
+
+model Reservation {
+  id              String          @id @default(cuid())
+  customerName    String
+  customerPhone   String?
+  guestCount      Int
+  startTime       DateTime
+  endTime         DateTime?
+  status          String          @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
+  tableId         String
+  table           RestaurantTable @relation(fields: [tableId], references: [id])
+  notes           String?
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 }

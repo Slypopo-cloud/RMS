@@ -12,6 +12,7 @@ export async function GET() {
       update: {},
       create: {
         email,
+        username: "admin",
         name: "Admin User",
         password,
         role: "ADMIN",

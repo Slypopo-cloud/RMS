@@ -1,30 +1,36 @@
-
 "use client";
 
-import { useActionState } from "react";
 import { updateOrderStatus } from "@/actions/order";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { 
+    Clock, 
+    User, 
+    ChefHat, 
+    CheckCircle2, 
+    Flame, 
+    Check,
+    Timer
+} from "lucide-react";
+import { toast } from "sonner";
 
-interface OrderItem {
-    id: string;
-    quantity: number;
-    menuItem: { name: string };
-}
-
-interface Order {
+interface KitchenOrder {
     id: string;
     status: string;
     createdAt: Date;
-    items: OrderItem[];
-    user?: { name: string; username: string };
+    table: { number: string } | null;
+    items: {
+        id: string;
+        quantity: number;
+        menuItem: { name: string };
+    }[];
+    user: { name: string | null; username: string } | null;
 }
 
-export default function KitchenDisplay({ initialOrders }: { initialOrders: Order[] }) {
+export default function KitchenDisplay({ initialOrders }: { initialOrders: KitchenOrder[] }) {
     const router = useRouter();
     const [updatingId, setUpdatingId] = useState<string | null>(null);
 
-    // Naive polling for now (every 10s) to refresh orders
     useEffect(() => {
         const interval = setInterval(() => {
             router.refresh();
@@ -34,82 +40,159 @@ export default function KitchenDisplay({ initialOrders }: { initialOrders: Order
 
     const handleStatusUpdate = async (orderId: string, newStatus: string) => {
         setUpdatingId(orderId);
-        await updateOrderStatus(orderId, newStatus);
+        const result = await updateOrderStatus(orderId, newStatus);
         setUpdatingId(null);
-        router.refresh(); 
+        if (result.success) {
+            toast.success(`Order status updated to ${newStatus}`);
+            router.refresh(); 
+        } else {
+            toast.error("Failed to update status");
+        }
     };
 
-    const getStatusColor = (status: string) => {
+    const getStatusStyles = (status: string) => {
         switch(status) {
-            case "PENDING": return "bg-yellow-100 border-yellow-300";
-            case "PREPARING": return "bg-blue-100 border-blue-300";
-            case "READY": return "bg-green-100 border-green-300";
-            default: return "bg-gray-100";
+            case "PENDING": return {
+                border: "border-primary/50",
+                glow: "shadow-[0_0_20px_rgba(245,158,11,0.1)]",
+                bg: "bg-primary/5",
+                text: "text-primary",
+                icon: Clock
+            };
+            case "PREPARING": return {
+                border: "border-blue-500/50",
+                glow: "shadow-[0_0_20px_rgba(59,130,246,0.1)]",
+                bg: "bg-blue-500/5",
+                text: "text-blue-400",
+                icon: Flame
+            };
+            case "READY": return {
+                border: "border-emerald-500/50",
+                glow: "shadow-[0_0_20px_rgba(16,185,129,0.1)]",
+                bg: "bg-emerald-500/5",
+                text: "text-emerald-400",
+                icon: CheckCircle2
+            };
+            default: return {
+                border: "border-slate-700",
+                glow: "",
+                bg: "bg-slate-800/50",
+                text: "text-slate-400",
+                icon: ChefHat
+            };
         }
     };
 
     return (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {initialOrders.length === 0 && (
-                <div className="col-span-full text-center text-gray-500 py-10">No active orders</div>
-            )}
-            
-            {initialOrders.map(order => (
-                <div key={order.id} className={`border-l-4 rounded-lg shadow bg-white p-4 ${getStatusColor(order.status)}`}>
-                    <div className="flex justify-between items-start mb-3">
-                        <div>
-                            <span className="font-bold text-lg">#{order.id.slice(-4)}</span>
-                            <div className="text-xs text-gray-500">
-                                {new Date(order.createdAt).toLocaleTimeString()}
-                            </div>
-                            <div className="text-xs text-gray-600 font-medium">
-                                Server: {order.user?.username || "Unknown"}
-                            </div>
-                        </div>
-                        <span className="px-2 py-1 bg-white rounded text-xs font-bold border">
-                            {order.status}
-                        </span>
-                    </div>
-
-                    <div className="space-y-2 mb-4">
-                        {order.items.map(item => (
-                            <div key={item.id} className="flex justify-between text-sm">
-                                <span>{item.quantity}x {item.menuItem.name}</span>
-                            </div>
-                        ))}
-                    </div>
-
-                    <div className="flex gap-2">
-                        {order.status === "PENDING" && (
-                            <button 
-                                onClick={() => handleStatusUpdate(order.id, "PREPARING")}
-                                disabled={updatingId === order.id}
-                                className="flex-1 bg-blue-600 text-white py-2 rounded text-sm font-semibold hover:bg-blue-700 disabled:opacity-50"
-                            >
-                                Start Preparing
-                            </button>
-                        )}
-                        {order.status === "PREPARING" && (
-                            <button 
-                                onClick={() => handleStatusUpdate(order.id, "READY")}
-                                disabled={updatingId === order.id}
-                                className="flex-1 bg-green-600 text-white py-2 rounded text-sm font-semibold hover:bg-green-700 disabled:opacity-50"
-                            >
-                                Mark Ready
-                            </button>
-                        )}
-                        {order.status === "READY" && (
-                            <button 
-                                onClick={() => handleStatusUpdate(order.id, "COMPLETED")}
-                                disabled={updatingId === order.id}
-                                className="flex-1 bg-gray-800 text-white py-2 rounded text-sm font-semibold hover:bg-gray-900 disabled:opacity-50"
-                            >
-                                Complete
-                            </button>
-                        )}
+        <div className="flex flex-col gap-8 animate-in fade-in duration-700">
+            <div className="flex justify-between items-end mb-4">
+                <div>
+                    <h2 className="text-3xl font-black text-white tracking-tight flex items-center gap-3">
+                        <ChefHat className="w-8 h-8 text-primary" />
+                        Kitchen Pipeline
+                    </h2>
+                    <p className="text-slate-400 font-medium">Manage active cooking orders</p>
+                </div>
+                <div className="flex gap-4">
+                    <div className="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
+                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
+                        <span className="text-xs font-black text-white tracking-widest uppercase">Live Tracking</span>
                     </div>
                 </div>
-            ))}
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {initialOrders.length === 0 && (
+                    <div className="col-span-full py-24 glass-card rounded-3xl flex flex-col items-center justify-center text-slate-500 border-dashed border-2 border-slate-800">
+                        <ChefHat className="w-16 h-16 opacity-10 mb-4" />
+                        <p className="font-bold uppercase tracking-widest text-xs">All clear! No active orders.</p>
+                    </div>
+                )}
+                
+                {initialOrders.map(order => {
+                    const styles = getStatusStyles(order.status);
+                    const StatusIcon = styles.icon;
+                    const elapsedMinutes = Math.floor((new Date().getTime() - new Date(order.createdAt).getTime()) / 60000);
+
+                    return (
+                        <div 
+                            key={order.id} 
+                            className={`glass-card rounded-3xl p-6 flex flex-col h-full border-t-4 ${styles.border} ${styles.glow} transition-all duration-500`}
+                        >
+                            <div className="flex justify-between items-start mb-6">
+                                <div>
+                                    <h3 className="font-black text-2xl text-white tracking-tighter">
+                                        #{order.id.slice(-4).toUpperCase()}
+                                    </h3>
+                                    <div className="flex items-center gap-2 mt-1">
+                                        <Timer className="w-3.5 h-3.5 text-slate-500" />
+                                        <span className={`text-xs font-bold ${elapsedMinutes > 15 ? 'text-red-400' : 'text-slate-400'}`}>
+                                            {elapsedMinutes}m ago
+                                        </span>
+                                    </div>
+                                </div>
+                                <div className={`p-2 rounded-xl ${styles.bg} ${styles.text}`}>
+                                    <StatusIcon className="w-5 h-5" />
+                                </div>
+                            </div>
+
+                            <div className="flex-1 space-y-3 mb-8">
+                                {order.items.map(item => (
+                                    <div key={item.id} className="flex items-center gap-3 group">
+                                        <span className="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center font-black text-white text-sm border border-slate-700/50 group-hover:border-primary/30 transition-colors">
+                                            {item.quantity}
+                                        </span>
+                                        <span className="font-bold text-slate-200 group-hover:text-white transition-colors">
+                                            {item.menuItem.name}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+
+                            <div className="mb-6 flex items-center gap-2 py-3 px-4 bg-slate-900/50 rounded-2xl border border-slate-800/50">
+                                <User className="w-3.5 h-3.5 text-slate-500" />
+                                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                                    Server: {order.user?.name || "Counter"}
+                                </span>
+                            </div>
+
+                            <div className="flex gap-2">
+                                {order.status === "PENDING" && (
+                                    <button 
+                                        onClick={() => handleStatusUpdate(order.id, "PREPARING")}
+                                        disabled={updatingId === order.id}
+                                        className="flex-1 bg-amber-500 text-black font-black py-3 rounded-2xl hover:bg-amber-400 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        <Flame className="w-4 h-4" />
+                                        COOK
+                                    </button>
+                                )}
+                                {order.status === "PREPARING" && (
+                                    <button 
+                                        onClick={() => handleStatusUpdate(order.id, "READY")}
+                                        disabled={updatingId === order.id}
+                                        className="flex-1 bg-blue-500 text-white font-black py-3 rounded-2xl hover:bg-blue-400 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        <Check className="w-4 h-4" />
+                                        READY
+                                    </button>
+                                )}
+                                {order.status === "READY" && (
+                                    <button 
+                                        onClick={() => handleStatusUpdate(order.id, "COMPLETED")}
+                                        disabled={updatingId === order.id}
+                                        className="flex-1 bg-emerald-500 text-white font-black py-3 rounded-2xl hover:bg-emerald-400 transition-all active:scale-95 flex items-center justify-center gap-2 disabled:opacity-50"
+                                    >
+                                        <CheckCircle2 className="w-4 h-4" />
+                                        DONE
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
+
