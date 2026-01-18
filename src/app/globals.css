@@ -18,19 +18,23 @@
   --color-primary-foreground: var(--primary-foreground);
   --color-border: var(--border);
   --color-muted: var(--muted);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-heading: var(--font-outfit);
 }
 
 @layer base {
   body {
     background-color: #020617; /* Slate 950 */
     color: #ffffff;
-    font-family: Arial, Helvetica, sans-serif;
+    font-family: var(--font-inter), sans-serif;
     background-image:
       radial-gradient(at 0% 0%, rgba(245, 158, 11, 0.05) 0, transparent 50%),
       radial-gradient(at 100% 100%, rgba(245, 158, 11, 0.03) 0, transparent 50%);
     background-attachment: fixed;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-outfit), sans-serif;
   }
 }
 

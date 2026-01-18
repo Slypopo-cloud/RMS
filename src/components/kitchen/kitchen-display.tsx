@@ -21,7 +21,7 @@ export interface KitchenOrder {
     updatedAt: Date;
     totalAmount: number;
     userId: string | null;
-    table: { number: string } | null;
+    restaurantTable: { number: string } | null;
     items: {
         id: string;
         quantity: number;

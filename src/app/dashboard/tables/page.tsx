@@ -22,7 +22,7 @@ interface Reservation {
     startTime: Date;
     endTime: Date | null;
     status: string;
-    table: {
+    restaurantTable: {
         number: string;
     };
 }

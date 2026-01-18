@@ -55,7 +55,7 @@ model Order {
   userId        String?
   user          User?            @relation(fields: [userId], references: [id])
   tableId       String?
-  table         RestaurantTable? @relation(fields: [tableId], references: [id])
+  restaurantTable RestaurantTable? @relation(fields: [tableId], references: [id])
   paymentStatus String           @default("UNPAID") // UNPAID, PAID, REFUNDED
   payment       Payment?
   createdAt     DateTime         @default(now())
@@ -124,7 +124,7 @@ model Reservation {
   endTime       DateTime?
   status        String          @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
   tableId       String
-  table         RestaurantTable @relation(fields: [tableId], references: [id])
+  restaurantTable RestaurantTable @relation(fields: [tableId], references: [id])
   notes         String?
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @updatedAt

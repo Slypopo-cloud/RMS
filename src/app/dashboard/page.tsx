@@ -124,7 +124,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 p-6 glass-card rounded-2xl">
         <div>
            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
-            Midnight <span className="text-primary">Bistro</span>
+            Vantage <span className="text-primary">RMS</span>
            </h1>
            <p className="text-slate-400 font-medium">Welcome back, {session?.user?.name || "User"} • <span className="text-primary/80 uppercase text-xs tracking-widest ml-1">{role || "Guest"}</span></p>
         </div>
@@ -226,8 +226,8 @@ export default async function DashboardPage() {
         <div className="inline-flex items-center gap-3 glass-card px-6 py-3 rounded-full border-slate-800/50">
            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
            <p className="text-sm font-bold text-slate-400">
-              System Core v1.0.4 • Secure Session: <span className="text-slate-200">{session?.user?.email}</span>
-           </p>
+               System Core v1.0.0 • Secure Session: <span className="text-slate-200">{session?.user?.email}</span>
+            </p>
         </div>
       </div>
     </div>

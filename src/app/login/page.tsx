@@ -16,9 +16,9 @@ export default function LoginPage() {
              <Utensils className="w-10 h-10 text-black" />
           </div>
           <h1 className="text-5xl font-black text-white tracking-tighter mb-2">
-            Midnight <span className="text-primary">Bistro</span>
+            Vantage <span className="text-primary">RMS</span>
           </h1>
-          <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Management Suite v2.0</p>
+          <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Professional Hospitality Suite v1.0</p>
         </div>
         
         <div className="glass-card rounded-[2.5rem] p-1 shadow-2xl">
@@ -26,7 +26,7 @@ export default function LoginPage() {
         </div>
         
         <p className="mt-8 text-center text-slate-500 text-xs font-medium">
-          &copy; 2026 Midnight Bistro RMS • All Rights Reserved
+          &copy; 2026 Vantage RMS • Enterprise Hospitality Solution
         </p>
       </div>
     </main>

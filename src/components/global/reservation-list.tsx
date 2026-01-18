@@ -23,7 +23,7 @@ interface Reservation {
     startTime: Date;
     endTime: Date | null;
     status: string;
-    table: {
+    restaurantTable: {
         number: string;
     };
 }
@@ -57,7 +57,7 @@ export default function ReservationList({ initialReservations }: { initialReserv
     const filtered = reservations.filter(r => 
         r.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (r.customerPhone && r.customerPhone.includes(searchQuery)) ||
-        r.table.number.includes(searchQuery)
+        r.restaurantTable.number.includes(searchQuery)
     );
 
     const getStatusStyles = (status: string) => {
@@ -117,7 +117,7 @@ export default function ReservationList({ initialReservations }: { initialReserv
                         <div className="flex items-center gap-6 w-full md:w-auto">
                             <div className="w-16 h-16 rounded-2xl bg-slate-800 border border-slate-700 flex flex-col items-center justify-center shadow-inner group-hover:bg-primary/10 group-hover:border-primary/20 transition-all">
                                 <span className="text-[10px] font-black text-slate-500 uppercase leading-none mb-1 group-hover:text-primary">Table</span>
-                                <span className="text-xl font-black text-white group-hover:text-primary">{reservation.table.number}</span>
+                                <span className="text-xl font-black text-white group-hover:text-primary">{reservation.restaurantTable.number}</span>
                             </div>
                             
                             <div className="flex-1">

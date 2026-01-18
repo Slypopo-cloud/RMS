@@ -30,7 +30,7 @@ export function DashboardHeader({ title, subtitle, showBack = true }: DashboardH
         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center">
             <ChefHat className="w-4 h-4 text-primary" />
         </div>
-        <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Midnight Bistro</span>
+        <span className="text-xs font-bold text-slate-300 uppercase tracking-widest">Vantage RMS</span>
       </div>
     </div>
   );

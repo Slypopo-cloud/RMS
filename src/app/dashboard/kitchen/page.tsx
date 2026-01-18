@@ -14,7 +14,7 @@ export default async function KitchenPage() {
         },
         include: {
             items: { include: { menuItem: true } },
-            table: true,
+            restaurantTable: true,
             user: {
                 select: { name: true, username: true }
             }

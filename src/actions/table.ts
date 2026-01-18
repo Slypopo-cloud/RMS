@@ -79,7 +79,7 @@ export async function deleteTable(id: string) {
 export async function getReservations() {
   try {
     const reservations = await prisma.reservation.findMany({
-      include: { table: true },
+      include: { restaurantTable: true },
       orderBy: { startTime: "asc" },
     });
     return { success: true, data: reservations };
@@ -102,7 +102,7 @@ export async function getReservationsByDate(date: Date) {
           lte: endOfDay,
         },
       },
-      include: { table: true },
+      include: { restaurantTable: true },
       orderBy: { startTime: "asc" },
     });
     return { success: true, data: reservations };

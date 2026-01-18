@@ -20,7 +20,7 @@ interface UIOrder {
     paymentStatus: string;
     totalAmount: number;
     createdAt: Date;
-    table: { number: string } | null;
+    restaurantTable: { number: string } | null;
     items: {
         quantity: number;
         menuItem: { name: string };
@@ -32,7 +32,7 @@ export default async function OrdersPage() {
   const orders = await prisma.order.findMany({
     include: {
       items: { include: { menuItem: true } },
-      table: true,
+      restaurantTable: true,
       user: { select: { name: true } }
     },
     orderBy: { createdAt: "desc" },
@@ -103,9 +103,9 @@ export default async function OrdersPage() {
                                 <Hash className="w-3 h-3" />
                                 <span>{order.id.slice(-6).toUpperCase()}</span>
                             </div>
-                            {order.type === "DINE_IN" && order.table && (
+                            {order.type === "DINE_IN" && order.restaurantTable && (
                                 <span className="text-[9px] font-black text-primary uppercase tracking-widest bg-primary/10 px-1.5 py-0.5 rounded w-fit">
-                                    Table {order.table.number}
+                                    Table {order.restaurantTable.number}
                                 </span>
                             )}
                         </div>
