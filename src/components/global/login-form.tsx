@@ -1,14 +1,30 @@
 "use client";
 
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { authenticate } from "@/actions/auth";
-import { User, Lock, ArrowRight, ShieldCheck, AlertCircle } from "lucide-react";
+import { User, Lock, ArrowRight, ShieldCheck, AlertCircle, Briefcase, ShoppingCart, Utensils, Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
+  const [showPassword, setShowPassword] = useState(false);
   const [errorMessage, dispatch, isPending] = useActionState(
     authenticate,
     undefined
   );
+
+  const fillForm = (username: string) => {
+    const usernameInput = document.getElementById('username') as HTMLInputElement;
+    const passwordInput = document.getElementById('password') as HTMLInputElement;
+    if (usernameInput) usernameInput.value = username;
+    if (passwordInput) passwordInput.value = 'admin123';
+    setShowPassword(true);
+  };
+
+  const quickUsers = [
+    { label: 'Admin', username: 'admin', icon: ShieldCheck, color: 'bg-amber-500/10 text-amber-500 border-amber-500/20' },
+    { label: 'Manager', username: 'manager', icon: Briefcase, color: 'bg-blue-500/10 text-blue-500 border-blue-500/20' },
+    { label: 'Cashier', username: 'cashier', icon: ShoppingCart, color: 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' },
+    { label: 'Kitchen', username: 'kitchen', icon: Utensils, color: 'bg-rose-500/10 text-rose-500 border-rose-500/20' },
+  ];
 
   return (
     <form action={dispatch} className="bg-slate-900/40 backdrop-blur-xl rounded-[2.2rem] p-8 md:p-10 border border-white/5">
@@ -52,14 +68,22 @@ export default function LoginForm() {
                 <Lock className="w-5 h-5" />
               </div>
               <input
-                className="w-full bg-slate-800/50 border border-slate-700/50 rounded-2xl py-4 pl-12 pr-4 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium"
+                className="w-full bg-slate-800/50 border border-slate-700/50 rounded-2xl py-4 pl-12 pr-12 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-4 focus:ring-primary/10 outline-none transition-all font-medium"
                 id="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 name="password"
                 placeholder="Security Key"
                 required
                 minLength={6}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-primary transition-colors"
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
           </div>
         </div>
@@ -89,9 +113,24 @@ export default function LoginForm() {
           </span>
         </button>
 
-        <div className="flex items-center justify-center gap-2 pt-2">
-          <ShieldCheck className="w-4 h-4 text-slate-600" />
-          <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.15em]">Admin / admin123</p>
+        <div className="pt-4 mt-4 border-t border-white/5">
+          <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4 text-center">Quick Access Identities</p>
+          <div className="grid grid-cols-2 gap-3">
+            {quickUsers.map((user) => (
+              <button
+                key={user.username}
+                type="button"
+                onClick={() => fillForm(user.username)}
+                className={`flex items-center gap-3 p-3 rounded-xl border transition-all hover:scale-[1.02] active:scale-[0.98] ${user.color}`}
+              >
+                <user.icon className="w-4 h-4 shrink-0" />
+                <div className="text-left">
+                  <p className="text-[10px] font-black uppercase tracking-tight leading-none">{user.label}</p>
+                  <p className="text-[9px] opacity-70 font-medium">{user.username}</p>
+                </div>
+              </button>
+            ))}
+          </div>
         </div>
       </div>
     </form>

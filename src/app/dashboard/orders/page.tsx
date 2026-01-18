@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 
 import { DashboardHeader } from "@/components/global/dashboard-header";
+import { OrderActions } from "@/components/global/order-actions";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ interface UIOrder {
     restaurantTable: { number: string } | null;
     items: {
         quantity: number;
-        menuItem: { name: string };
+        menuItem: { name: string; price: number };
     }[];
     user: { name: string | null } | null;
 }
@@ -89,7 +90,8 @@ export default async function OrdersPage() {
                 <th className="px-8 py-5 text-left">Composition</th>
                 <th className="px-8 py-5 text-left">Net Value</th>
                 <th className="px-8 py-5 text-center">Payment</th>
-                <th className="px-8 py-5 text-right">Fulfillment</th>
+                <th className="px-8 py-5 text-center">Fulfillment</th>
+                <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800 bg-slate-900/10">
@@ -145,18 +147,21 @@ export default async function OrdersPage() {
                         {order.paymentStatus}
                       </span>
                     </td>
-                    <td className="px-8 py-6 whitespace-nowrap text-right">
+                    <td className="px-8 py-6 whitespace-nowrap text-center">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyles(order.status)}`}>
                         <StatusIcon className="w-3 h-3" />
                         {order.status}
                       </span>
+                    </td>
+                    <td className="px-8 py-6 whitespace-nowrap text-right">
+                        <OrderActions order={order} />
                     </td>
                   </tr>
                 );
               })}
               {orders.length === 0 && (
                   <tr>
-                      <td colSpan={6} className="px-8 py-20 text-center">
+                      <td colSpan={8} className="px-8 py-20 text-center">
                         <div className="flex flex-col items-center justify-center text-slate-600 gap-4">
                             <History className="w-12 h-12 opacity-10" />
                             <p className="font-bold uppercase tracking-widest text-xs italic">Historical database is currently empty.</p>

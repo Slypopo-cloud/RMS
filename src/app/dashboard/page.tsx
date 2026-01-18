@@ -83,6 +83,14 @@ export default async function DashboardPage() {
       description: "Update menu items and prices",
       allowedRoles: ["ADMIN", "MANAGER"]
     },
+    {
+      title: "User Management",
+      href: "/dashboard/users",
+      icon: Users,
+      color: "bg-indigo-500",
+      description: "Manage operator access and roles",
+      allowedRoles: ["ADMIN", "MANAGER"]
+    },
   ];
 
   const quickActions = allActions.filter(action => 

@@ -17,7 +17,8 @@ export const authConfig = {
         // Granular Role-Based Access Control
         if (pathname.startsWith("/dashboard/reports") || 
             pathname.startsWith("/dashboard/inventory") || 
-            pathname.startsWith("/dashboard/menu")) {
+            pathname.startsWith("/dashboard/menu") ||
+            pathname.startsWith("/dashboard/users")) {
           return role === "ADMIN" || role === "MANAGER";
         }
 
