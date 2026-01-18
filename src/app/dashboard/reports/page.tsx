@@ -257,7 +257,7 @@ export default function ReportsPage() {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-0.5">Total Revenue</p>
-                                    <p className="text-3xl font-black text-white leading-none">${totalRevenue.toFixed(2)}</p>
+                                    <p className="text-3xl font-black text-white leading-none">GH₵{totalRevenue.toFixed(2)}</p>
                                 </div>
                             </div>
                         </div>
@@ -269,7 +269,7 @@ export default function ReportsPage() {
                         <CreditCard className="w-3 h-3" /> Avg. Order
                     </p>
                     <p className="text-3xl font-black text-white">
-                        ${orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : "0.00"}
+                        GH₵{orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : "0.00"}
                     </p>
                 </div>
             </div>
@@ -295,7 +295,7 @@ export default function ReportsPage() {
                                     </div>
                                     <div className="text-right">
                                         <p className="text-sm font-black text-white">{item.quantity} sold</p>
-                                        <p className="text-xs text-slate-500 font-bold">${item.revenue.toFixed(2)} revenue</p>
+                                        <p className="text-xs text-slate-500 font-bold">GH₵{item.revenue.toFixed(2)} revenue</p>
                                     </div>
                                 </div>
                                 <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
@@ -406,7 +406,7 @@ export default function ReportsPage() {
                                             <h4 className="text-base font-bold text-white">{cat.category}</h4>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-sm font-black text-white">${cat.revenue.toFixed(2)}</p>
+                                            <p className="text-sm font-black text-white">GH₵{cat.revenue.toFixed(2)}</p>
                                             <p className="text-xs text-slate-500 font-bold">{cat.itemsSold} items</p>
                                         </div>
                                     </div>
@@ -461,7 +461,7 @@ export default function ReportsPage() {
                                     </div>
                                     <div className="text-right">
                                         <p className={`text-lg font-black ${idx === 0 ? 'text-primary' : 'text-white'}`}>
-                                            ${staff.revenue.toFixed(2)}
+                                            GH₵{staff.revenue.toFixed(2)}
                                         </p>
                                     </div>
                                 </div>
@@ -526,7 +526,7 @@ export default function ReportsPage() {
                                             {order.user?.name || "Counter"}
                                         </td>
                                         <td className="px-8 py-6 text-right">
-                                            <span className="text-lg font-black text-white">${order.totalAmount.toFixed(2)}</span>
+                                            <span className="text-lg font-black text-white">GH₵{order.totalAmount.toFixed(2)}</span>
                                         </td>
                                     </tr>
                                 ))}

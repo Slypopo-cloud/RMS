@@ -16,7 +16,8 @@ import {
     Coffee,
     CreditCard,
     Banknote,
-    ShieldCheck
+    ShieldCheck,
+    UtensilsCrossed
 } from "lucide-react";
 
 interface MenuItem {
@@ -24,6 +25,7 @@ interface MenuItem {
   name: string;
   price: number;
   available: boolean;
+  image: string | null;
   category: { name: string };
 }
 
@@ -210,20 +212,33 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                         <button 
                              key={item.id} 
                              onClick={() => addToCart(item)}
-                             className="glass-card rounded-2xl p-6 text-left flex flex-col justify-between h-48 group hover:border-primary/50 hover:shadow-primary/5 transition-all active:scale-95"
+                             className="glass-card rounded-2xl overflow-hidden text-left flex flex-col h-64 group hover:border-primary/50 hover:shadow-primary/5 transition-all active:scale-95"
                         >
-                            <div className="flex justify-between items-start">
-                                <span className="bg-slate-800 text-slate-400 text-[10px] font-black uppercase tracking-widest px-2 py-1 rounded-md mb-4 group-hover:bg-primary/20 group-hover:text-primary transition-colors">
+                            {/* Image Section */}
+                            <div className="h-32 bg-slate-800/50 relative overflow-hidden">
+                                {item.image ? (
+                                    <img 
+                                        src={item.image} 
+                                        alt={item.name}
+                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
+                                        <UtensilsCrossed className="w-12 h-12 text-slate-700" />
+                                    </div>
+                                )}
+                                <span className="absolute top-2 left-2 bg-slate-900/90 text-slate-300 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-md">
                                     {item.category.name}
                                 </span>
                             </div>
                             
-                            <div>
-                                <h3 className="font-bold text-lg text-white mb-1 group-hover:text-primary transition-colors">{item.name}</h3>
-                                <div className="flex justify-between items-center mt-4">
-                                    <span className="text-2xl font-black text-white">${item.price.toFixed(2)}</span>
-                                    <div className="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-black transition-all">
-                                        <Plus className="w-5 h-5" />
+                            {/* Content Section */}
+                            <div className="p-4 flex-1 flex flex-col justify-between">
+                                <h3 className="font-bold text-base text-white mb-1 group-hover:text-primary transition-colors line-clamp-2">{item.name}</h3>
+                                <div className="flex justify-between items-center mt-2">
+                                    <span className="text-xl font-black text-white">GH₵{item.price.toFixed(2)}</span>
+                                    <div className="w-9 h-9 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400 group-hover:bg-primary group-hover:text-black transition-all">
+                                        <Plus className="w-4 h-4" />
                                     </div>
                                 </div>
                             </div>
@@ -268,7 +283,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                             <div key={item.menuItemId} className="flex justify-between items-center group animate-in slide-in-from-right-4 duration-300">
                                 <div className="flex-1">
                                     <h3 className="font-bold text-white mb-0.5">{item.name}</h3>
-                                    <p className="text-xs font-black text-slate-500">${item.price.toFixed(2)}</p>
+                                    <p className="text-xs font-black text-slate-500">GH₵{item.price.toFixed(2)}</p>
                                 </div>
                                 <div className="flex items-center gap-4">
                                     <div className="flex items-center bg-slate-800/80 rounded-xl p-1 border border-slate-700">
@@ -347,11 +362,11 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                     <div className="space-y-3">
                         <div className="flex justify-between font-bold text-sm uppercase tracking-widest">
                             <span>Subtotal</span>
-                            <span>${total.toFixed(2)}</span>
+                            <span>GH₵{total.toFixed(2)}</span>
                         </div>
                         <div className="flex justify-between text-white font-black text-3xl">
                             <span>Total</span>
-                            <span className="text-primary">${total.toFixed(2)}</span>
+                            <span className="text-primary">GH₵{total.toFixed(2)}</span>
                         </div>
                     </div>
                     
@@ -408,7 +423,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                         <div className="space-y-8 relative z-10">
                             <div className="bg-slate-900/50 rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
                                 <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Amount Due</span>
-                                <span className="text-4xl font-black text-primary">${total.toFixed(2)}</span>
+                                <span className="text-4xl font-black text-primary">GH₵{total.toFixed(2)}</span>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">

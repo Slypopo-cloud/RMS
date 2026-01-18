@@ -24,6 +24,7 @@ interface MenuItem {
   description: string | null;
   price: number;
   available: boolean;
+  image: string | null;
   category: Category;
 }
 
@@ -87,7 +88,7 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Value (USD)</label>
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Value (GH₵)</label>
             <div className="relative">
                 <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                 <input 
@@ -99,6 +100,17 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
                     placeholder="0.00" 
                 />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Image URL (Optional)</label>
+            <input 
+                name="image" 
+                type="url" 
+                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
+                placeholder="https://example.com/food-image.jpg" 
+            />
+            <p className="text-[9px] text-slate-500 ml-1">Paste a link to your dish photo</p>
           </div>
 
           <div className="space-y-2 md:col-span-2">
@@ -162,9 +174,22 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
               {items.map((item) => (
                 <tr key={item.id} className="group hover:bg-white/5 transition-colors">
                   <td className="px-8 py-6 whitespace-nowrap">
-                    <div className="flex flex-col">
-                        <span className="font-bold text-lg text-white group-hover:text-primary transition-colors">{item.name}</span>
-                        {item.description && <span className="text-[10px] text-slate-500 line-clamp-1 max-w-[200px]">{item.description}</span>}
+                    <div className="flex items-center gap-4">
+                        {item.image ? (
+                            <img 
+                                src={item.image} 
+                                alt={item.name}
+                                className="w-16 h-16 rounded-lg object-cover border-2 border-slate-700"
+                            />
+                        ) : (
+                            <div className="w-16 h-16 rounded-lg bg-slate-800 flex items-center justify-center border-2 border-slate-700">
+                                <UtensilsCrossed className="w-6 h-6 text-slate-600" />
+                            </div>
+                        )}
+                        <div className="flex flex-col">
+                            <span className="font-bold text-lg text-white group-hover:text-primary transition-colors">{item.name}</span>
+                            {item.description && <span className="text-[10px] text-slate-500 line-clamp-1 max-w-[200px]">{item.description}</span>}
+                        </div>
                     </div>
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
@@ -173,7 +198,7 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
                     </span>
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
-                    <span className="text-xl font-black text-white">${item.price.toFixed(2)}</span>
+                    <span className="text-xl font-black text-white">GH₵{item.price.toFixed(2)}</span>
                   </td>
                   <td className="px-8 py-6 whitespace-nowrap">
                     <button 

@@ -78,14 +78,14 @@ export function OrderActions({ order }: OrderActionsProps) {
             ${order.items.map(i => `
               <div class="item">
                 <span>${i.quantity}x ${i.menuItem.name}</span>
-                <span>$${(i.quantity * (i.menuItem.price || 0)).toFixed(2)}</span>
+                <span>GH₵{(i.quantity * (i.menuItem.price || 0)).toFixed(2)}</span>
               </div>
             `).join('')}
           </div>
           <div class="total">
             <div class="item">
               <span>NET TOTAL</span>
-              <span>$${order.totalAmount.toFixed(2)}</span>
+              <span>GH₵{order.totalAmount.toFixed(2)}</span>
             </div>
             <div class="item">
               <span>STATUS</span>
@@ -137,7 +137,7 @@ export function OrderActions({ order }: OrderActionsProps) {
                     <Receipt className="w-8 h-8 text-primary" />
                 </div>
               <h3 className="text-2xl font-black text-white tracking-tight mb-2">Order Settlement</h3>
-              <p className="text-slate-400 text-sm font-medium">Select payment method for total <span className="text-white font-bold">${order.totalAmount.toFixed(2)}</span></p>
+              <p className="text-slate-400 text-sm font-medium">Select payment method for total <span className="text-white font-bold">GH₵{order.totalAmount.toFixed(2)}</span></p>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

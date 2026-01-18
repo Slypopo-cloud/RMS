@@ -14,8 +14,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Vantage RMS | Professional Restaurant Management",
-  description: "Enterprise-grade hospitality management system",
+  title: "Olu's Kitchen | Restaurant Management System",
+  description: "Olu's Kitchen - Modern restaurant management for exceptional dining experiences",
 };
 
 export default function RootLayout({

@@ -101,7 +101,7 @@ export default async function DashboardPage() {
   const allMetrics = [
     {
       label: "Today's Revenue",
-      value: `$${stats.todayRevenue.toFixed(2)}`,
+      value: `GH₵${stats.todayRevenue.toFixed(2)}`,
       icon: TrendingUp,
       color: "text-green-600",
       bg: "bg-green-100",

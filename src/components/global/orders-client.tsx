@@ -151,7 +151,7 @@ export function OrdersClient({ orders }: { orders: UIOrder[] }) {
                                         </td>
                                         <td className="px-8 py-6 whitespace-nowrap">
                                             <div className="flex items-center gap-1">
-                                                <span className="text-lg font-black text-white">${order.totalAmount.toFixed(2)}</span>
+                                                <span className="text-lg font-black text-white">GH₵{order.totalAmount.toFixed(2)}</span>
                                             </div>
                                         </td>
                                         <td className="px-8 py-6 whitespace-nowrap text-center">
