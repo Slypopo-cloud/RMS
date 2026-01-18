@@ -52,7 +52,7 @@ export async function createOrder(items: { menuItemId: string; quantity: number;
     items.forEach(orderItem => {
       const recipe = recipes.find((r: RecipeWithIngredients) => r.menuItemId === orderItem.menuItemId);
       if (recipe) {
-        recipe.ingredients.forEach((ingredient) => {
+        recipe.ingredients.forEach((ingredient: { inventoryItemId: string; quantity: number }) => {
           const totalDeduction = ingredient.quantity * orderItem.quantity;
           inventoryUpdates[ingredient.inventoryItemId] = (inventoryUpdates[ingredient.inventoryItemId] || 0) + totalDeduction;
         });
@@ -155,5 +155,48 @@ export async function updateOrderStatus(orderId: string, newStatus: string) {
         return { success: true, message: "Order status updated" };
     } catch {
          return { success: false, error: "Failed to update order status" };
+    }
+}
+
+export async function processPayment(orderId: string, amount: number, method: "CASH" | "CARD") {
+    const session = await auth();
+    const role = session?.user?.role;
+    const allowedRoles = ["ADMIN", "MANAGER", "CASHIER"];
+
+    if (!role || !allowedRoles.includes(role)) {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    try {
+        await prisma.$transaction(async (tx) => {
+            // 1. Create payment record
+            // For card payments, we'd normally call a provider first. 
+            // Here we simulate success.
+            const reference = method === "CARD" ? `SIM-${Math.random().toString(36).substring(2, 11).toUpperCase()}` : null;
+
+            await tx.payment.create({
+                data: {
+                    orderId,
+                    amount,
+                    method,
+                    status: "SUCCESS",
+                    reference
+                }
+            });
+
+            // 2. Update order payment status
+            await tx.order.update({
+                where: { id: orderId },
+                data: { paymentStatus: "PAID" }
+            });
+        });
+
+        revalidatePath("/dashboard/orders");
+        revalidatePath("/dashboard/pos");
+        revalidatePath("/dashboard/tables");
+        
+        return { success: true, message: `Payment of $${amount} via ${method} processed.` };
+    } catch {
+        return { success: false, error: "Payment processing failed" };
     }
 }

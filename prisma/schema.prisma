@@ -47,17 +47,19 @@ model MenuItem {
 
 // 3. Order Management
 model Order {
-  id          String           @id @default(cuid())
-  status      String           @default("PENDING") // PENDING, PREPARING, READY, COMPLETED, CANCELLED
-  type        String           @default("DINE_IN") // DINE_IN, TAKEAWAY
-  totalAmount Float
-  items       OrderItem[]
-  userId      String?
-  user        User?            @relation(fields: [userId], references: [id])
-  tableId     String?
-  table       RestaurantTable? @relation(fields: [tableId], references: [id])
-  createdAt   DateTime         @default(now())
-  updatedAt   DateTime         @updatedAt
+  id            String           @id @default(cuid())
+  status        String           @default("PENDING") // PENDING, PREPARING, READY, COMPLETED, CANCELLED
+  type          String           @default("DINE_IN") // DINE_IN, TAKEAWAY
+  totalAmount   Float
+  items         OrderItem[]
+  userId        String?
+  user          User?            @relation(fields: [userId], references: [id])
+  tableId       String?
+  table         RestaurantTable? @relation(fields: [tableId], references: [id])
+  paymentStatus String           @default("UNPAID") // UNPAID, PAID, REFUNDED
+  payment       Payment?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
 }
 
 model OrderItem {
@@ -72,14 +74,14 @@ model OrderItem {
 
 // 4. Inventory Management
 model InventoryItem {
-  id               String             @id @default(cuid())
-  name             String
-  quantity         Int
-  unit             String // e.g., 'kg', 'pcs', 'liters'
-  threshold        Int // Low stock alert threshold
+  id                String             @id @default(cuid())
+  name              String
+  quantity          Int
+  unit              String // e.g., 'kg', 'pcs', 'liters'
+  threshold         Int // Low stock alert threshold
   recipeIngredients RecipeIngredient[]
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
 }
 
 // 5. Recipe Management
@@ -114,16 +116,28 @@ model RestaurantTable {
 }
 
 model Reservation {
-  id              String          @id @default(cuid())
-  customerName    String
-  customerPhone   String?
-  guestCount      Int
-  startTime       DateTime
-  endTime         DateTime?
-  status          String          @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
-  tableId         String
-  table           RestaurantTable @relation(fields: [tableId], references: [id])
-  notes           String?
-  createdAt       DateTime        @default(now())
-  updatedAt       DateTime        @updatedAt
+  id            String          @id @default(cuid())
+  customerName  String
+  customerPhone String?
+  guestCount    Int
+  startTime     DateTime
+  endTime       DateTime?
+  status        String          @default("CONFIRMED") // CONFIRMED, CANCELLED, COMPLETED
+  tableId       String
+  table         RestaurantTable @relation(fields: [tableId], references: [id])
+  notes         String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  orderId   String   @unique
+  order     Order    @relation(fields: [orderId], references: [id])
+  amount    Float
+  method    String // CASH, CARD
+  status    String   @default("SUCCESS") // SUCCESS, FAILED, REFUNDED
+  reference String? // Transaction ID from provider
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

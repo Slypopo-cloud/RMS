@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { createOrder } from "@/actions/order";
+import { createOrder, processPayment } from "@/actions/order";
 import { toast } from "sonner";
 import { 
     Plus, 
@@ -13,7 +13,10 @@ import {
     Users,
     ChevronDown,
     Truck,
-    Coffee
+    Coffee,
+    CreditCard,
+    Banknote,
+    ShieldCheck
 } from "lucide-react";
 
 interface MenuItem {
@@ -43,6 +46,10 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
     const [lastOrderId, setLastOrderId] = useState<string | null>(null);
     const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
     const [selectedTableId, setSelectedTableId] = useState<string>("");
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD" | null>(null);
+    const [isProcessingPayment, setIsProcessingPayment] = useState(false);
+    const [activeCartOrderId, setActiveCartOrderId] = useState<string | null>(null);
 
     const addToCart = (item: MenuItem) => {
         setCart(prev => {
@@ -80,19 +87,39 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
         }
 
         setIsCheckingOut(true);
+        // Step 1: Create Order if not already created
         const result = await createOrder(
             cart.map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity, price: i.price })), 
             orderType, 
             selectedTableId
         );
         setIsCheckingOut(false);
+
         if (result.success) {
+            setActiveCartOrderId(result.orderId || null);
             setLastOrderId(result.orderId || null);
-            setCart([]);
-            setSelectedTableId("");
-            toast.success("Order dispatched to kitchen!");
+            setShowPaymentModal(true);
         } else {
             toast.error("Failed to place order: " + result.error);
+        }
+    };
+
+    const handlePayment = async () => {
+        if (!activeCartOrderId || !paymentMethod) return;
+
+        setIsProcessingPayment(true);
+        const result = await processPayment(activeCartOrderId, total, paymentMethod);
+        setIsProcessingPayment(false);
+
+        if (result.success) {
+            toast.success(result.message);
+            setShowPaymentModal(false);
+            setCart([]);
+            setSelectedTableId("");
+            setActiveCartOrderId(null);
+            setPaymentMethod(null);
+        } else {
+            toast.error(result.error);
         }
     };
 
@@ -282,6 +309,82 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                     </button>
                 </div>
             </div>
+            {/* Payment Modal */}
+            {showPaymentModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300">
+                    <div className="glass-card w-full max-w-lg rounded-[2.5rem] p-10 border-primary/20 shadow-[0_20px_60px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in zoom-in-95 duration-300">
+                        <div className="absolute top-0 right-0 w-64 h-64 -mr-32 -mt-32 bg-primary/5 blur-3xl rounded-full"></div>
+                        
+                        <div className="flex justify-between items-start mb-10 relative z-10">
+                            <div>
+                                <h2 className="text-3xl font-black text-white tracking-tight mb-2 flex items-center gap-3">
+                                    <ShieldCheck className="w-8 h-8 text-primary" />
+                                    Secure Checkout
+                                </h2>
+                                <p className="text-slate-400 font-medium lowercase tracking-wide">Finalize order #{activeCartOrderId?.slice(-6).toUpperCase()}</p>
+                            </div>
+                            <button 
+                                onClick={() => {
+                                    setShowPaymentModal(false);
+                                    setCart([]); // Clear cart since order is already placed
+                                    setSelectedTableId("");
+                                    setActiveCartOrderId(null);
+                                    toast.info("Order saved. Payment pending.");
+                                }}
+                                className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-all"
+                            >
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="space-y-8 relative z-10">
+                            <div className="bg-slate-900/50 rounded-3xl p-6 border border-slate-800 flex justify-between items-center">
+                                <span className="text-slate-400 font-bold uppercase tracking-widest text-xs">Amount Due</span>
+                                <span className="text-4xl font-black text-primary">${total.toFixed(2)}</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4">
+                                <button 
+                                    onClick={() => setPaymentMethod("CASH")}
+                                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${paymentMethod === "CASH" ? 'border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-slate-800 bg-slate-900/30 text-slate-500 hover:border-slate-700'}`}
+                                >
+                                    <Banknote className="w-10 h-10" />
+                                    <span className="font-black text-xs tracking-widest uppercase">Cash Payment</span>
+                                </button>
+                                <button 
+                                    onClick={() => setPaymentMethod("CARD")}
+                                    className={`p-6 rounded-3xl border-2 transition-all flex flex-col items-center gap-3 ${paymentMethod === "CARD" ? 'border-primary bg-primary/10 text-primary shadow-[0_0_20px_rgba(245,158,11,0.1)]' : 'border-slate-800 bg-slate-900/30 text-slate-500 hover:border-slate-700'}`}
+                                >
+                                    <CreditCard className="w-10 h-10" />
+                                    <span className="font-black text-xs tracking-widest uppercase">Card Terminal</span>
+                                </button>
+                            </div>
+
+                            <button 
+                                onClick={handlePayment}
+                                disabled={!paymentMethod || isProcessingPayment}
+                                className="w-full bg-primary hover:bg-amber-400 disabled:opacity-50 text-black font-black py-5 rounded-2xl shadow-[0_10px_30px_rgba(245,158,11,0.2)] transition-all flex items-center justify-center gap-3 uppercase tracking-widest text-sm"
+                            >
+                                {isProcessingPayment ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-black/30 border-t-black rounded-full animate-spin"></div>
+                                        PROCESSING TRANSACTION...
+                                    </>
+                                ) : (
+                                    <>
+                                        AUTHORIZE PAYMENT
+                                        <CheckCircle2 className="w-5 h-5" />
+                                    </>
+                                )}
+                            </button>
+                            
+                            <p className="text-center text-[10px] text-slate-600 font-bold uppercase tracking-[0.2em]">
+                                Encrypted & Regulated Transaction Environment
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 }

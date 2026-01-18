@@ -1,5 +1,5 @@
 
-import KitchenDisplay from "@/components/kitchen/kitchen-display";
+import KitchenDisplay, { KitchenOrder } from "@/components/kitchen/kitchen-display";
 import prisma from "@/lib/prisma";
 
 import { DashboardHeader } from "@/components/global/dashboard-header";
@@ -36,8 +36,7 @@ export default async function KitchenPage() {
             </div>
 
             <div className="relative">
-               // @ts-expect-error - Prisma types may be out of sync in this env but structure is correct
-                <KitchenDisplay initialOrders={orders} />
+                <KitchenDisplay initialOrders={orders as KitchenOrder[]} />
             </div>
         </div>
     );

@@ -49,8 +49,7 @@ export async function getDashboardStats() {
         lowStockItems: lowStockCount > 0 ? lowStockItems : [],
       },
     };
-  } catch (error) {
-    console.error("Dashboard Stats Error:", error);
+  } catch {
     return { success: false, error: "Failed to fetch dashboard stats" };
   }
 }

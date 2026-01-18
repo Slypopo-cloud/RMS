@@ -13,6 +13,21 @@ import { DashboardHeader } from "@/components/global/dashboard-header";
 
 export const dynamic = "force-dynamic";
 
+interface UIOrder {
+    id: string;
+    status: string;
+    type: string;
+    paymentStatus: string;
+    totalAmount: number;
+    createdAt: Date;
+    table: { number: string } | null;
+    items: {
+        quantity: number;
+        menuItem: { name: string };
+    }[];
+    user: { name: string | null } | null;
+}
+
 export default async function OrdersPage() {
   const orders = await prisma.order.findMany({
     include: {
@@ -21,7 +36,15 @@ export default async function OrdersPage() {
       user: { select: { name: true } }
     },
     orderBy: { createdAt: "desc" },
-  });
+  }) as unknown as UIOrder[];
+
+  const getPaymentStyles = (status: string) => {
+    switch(status) {
+        case "PAID": return "bg-emerald-500/10 text-emerald-400 border-emerald-500/20";
+        case "REFUNDED": return "bg-amber-500/10 text-amber-500 border-amber-500/20";
+        default: return "bg-red-500/10 text-red-500 border-red-500/20";
+    }
+  };
 
   const getStatusStyles = (status: string) => {
     switch(status) {
@@ -65,6 +88,7 @@ export default async function OrdersPage() {
                 <th className="px-8 py-5 text-left">Operator</th>
                 <th className="px-8 py-5 text-left">Composition</th>
                 <th className="px-8 py-5 text-left">Net Value</th>
+                <th className="px-8 py-5 text-center">Payment</th>
                 <th className="px-8 py-5 text-right">Fulfillment</th>
               </tr>
             </thead>
@@ -115,6 +139,11 @@ export default async function OrdersPage() {
                         <div className="flex items-center gap-1">
                             <span className="text-lg font-black text-white">${order.totalAmount.toFixed(2)}</span>
                         </div>
+                    </td>
+                    <td className="px-8 py-6 whitespace-nowrap text-center">
+                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest border ${getPaymentStyles(order.paymentStatus)}`}>
+                        {order.paymentStatus}
+                      </span>
                     </td>
                     <td className="px-8 py-6 whitespace-nowrap text-right">
                       <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border ${getStatusStyles(order.status)}`}>

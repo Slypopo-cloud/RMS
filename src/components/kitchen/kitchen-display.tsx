@@ -14,10 +14,13 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
-interface KitchenOrder {
+export interface KitchenOrder {
     id: string;
     status: string;
     createdAt: Date;
+    updatedAt: Date;
+    totalAmount: number;
+    userId: string | null;
     table: { number: string } | null;
     items: {
         id: string;
