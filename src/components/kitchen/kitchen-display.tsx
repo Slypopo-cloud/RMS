@@ -10,7 +10,8 @@ import {
     CheckCircle2, 
     Flame, 
     Check,
-    Timer
+    Timer,
+    RefreshCcw
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -33,13 +34,22 @@ export interface KitchenOrder {
 export default function KitchenDisplay({ initialOrders }: { initialOrders: KitchenOrder[] }) {
     const router = useRouter();
     const [updatingId, setUpdatingId] = useState<string | null>(null);
+    const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+    const [isRefreshing, setIsRefreshing] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
-            router.refresh();
-        }, 10000);
+            handleRefresh();
+        }, 30000); // Polling every 30s instead of 10s to be less aggressive
         return () => clearInterval(interval);
     }, [router]);
+
+    const handleRefresh = async () => {
+        setIsRefreshing(true);
+        router.refresh();
+        setLastUpdated(new Date());
+        setTimeout(() => setIsRefreshing(false), 1000);
+    };
 
     const handleStatusUpdate = async (orderId: string, newStatus: string) => {
         setUpdatingId(orderId);
@@ -97,9 +107,19 @@ export default function KitchenDisplay({ initialOrders }: { initialOrders: Kitch
                     <p className="text-slate-400 font-medium">Manage active cooking orders</p>
                 </div>
                 <div className="flex gap-4">
-                    <div className="glass-card px-4 py-2 rounded-xl flex items-center gap-2">
-                        <div className="w-2 h-2 bg-primary rounded-full animate-pulse"></div>
-                        <span className="text-xs font-black text-white tracking-widest uppercase">Live Tracking</span>
+                    <div className="glass-card px-4 py-2 rounded-xl flex items-center gap-3 border border-slate-800">
+                        <div className="flex flex-col items-end">
+                            <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Last Update</span>
+                            <span className="text-[10px] font-bold text-slate-300 tabular-nums">
+                                {lastUpdated.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                            </span>
+                        </div>
+                        <button 
+                            onClick={handleRefresh}
+                            className={`p-2 rounded-lg bg-slate-800 border border-slate-700 text-slate-400 hover:text-primary hover:border-primary/50 transition-all ${isRefreshing ? 'animate-spin text-primary' : ''}`}
+                        >
+                            <RefreshCcw className="w-4 h-4" />
+                        </button>
                     </div>
                 </div>
             </div>

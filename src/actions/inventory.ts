@@ -104,3 +104,23 @@ export async function getLowStockItems() {
     return { success: false, error: "Failed to fetch low stock items" };
   }
 }
+
+export async function restockItem(id: string, amount: number) {
+    const session = await auth();
+    const allowedRoles = ["ADMIN", "MANAGER", "KITCHEN_STAFF"];
+    if (!session?.user?.role || !allowedRoles.includes(session.user.role)) {
+      return { success: false, error: "Unauthorized" };
+    }
+
+    try {
+        await prisma.inventoryItem.update({
+            where: { id },
+            data: { quantity: { increment: amount } }
+        });
+        revalidatePath("/dashboard/inventory");
+        revalidatePath("/dashboard");
+        return { success: true, message: `Restocked by ${amount}` };
+    } catch {
+        return { success: false, error: "Failed to restock" };
+    }
+}

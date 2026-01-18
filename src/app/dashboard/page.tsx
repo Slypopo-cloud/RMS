@@ -15,6 +15,7 @@ import {
   Users
 } from "lucide-react";
 import { getDashboardStats } from "@/actions/analytics";
+import { RestockButton } from "@/components/global/restock-button";
 
 export default async function DashboardPage() {
   const session = await auth();
@@ -187,12 +188,11 @@ export default async function DashboardPage() {
                       style={{ width: `${Math.max(10, (item.quantity / item.threshold) * 100)}%` }}
                    ></div>
                 </div>
-                <Link 
-                  href="/dashboard/inventory"
-                  className="w-full text-center text-sm font-bold text-red-400 hover:text-white bg-red-500/10 hover:bg-red-500/20 py-2.5 rounded-xl transition-all"
-                >
-                  Resolve Alert
-                </Link>
+                <RestockButton 
+                  itemId={item.id} 
+                  itemName={item.name} 
+                  threshold={item.threshold} 
+                />
               </div>
             ))}
           </div>

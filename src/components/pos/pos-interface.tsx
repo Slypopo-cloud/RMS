@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { createOrder, processPayment } from "@/actions/order";
 import { toast } from "sonner";
 import { 
@@ -50,6 +50,13 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
     const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD" | null>(null);
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
     const [activeCartOrderId, setActiveCartOrderId] = useState<string | null>(null);
+    const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
+
+    // Extract unique categories
+    const categories = ["ALL", ...Array.from(new Set(items.map(item => item.category.name)))];
+    const filteredItems = selectedCategory === "ALL" 
+        ? items.filter(i => i.available)
+        : items.filter(i => i.available && i.category.name === selectedCategory);
 
     const addToCart = (item: MenuItem) => {
         setCart(prev => {
@@ -123,6 +130,50 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
         }
     };
 
+    // Keyboard shortcuts
+    useEffect(() => {
+        const handleKeyPress = (e: KeyboardEvent) => {
+            // Ignore if typing in an input field
+            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
+                return;
+            }
+
+            // Enter - Checkout
+            if (e.key === 'Enter' && cart.length > 0 && !isCheckingOut) {
+                e.preventDefault();
+                handleCheckout();
+            }
+
+            // Escape - Clear cart
+            if (e.key === 'Escape' && cart.length > 0) {
+                e.preventDefault();
+                setCart([]);
+                toast.info("Cart cleared");
+            }
+
+            // Tab - Toggle order type
+            if (e.key === 'Tab' && !showPaymentModal) {
+                e.preventDefault();
+                setOrderType(prev => prev === "DINE_IN" ? "TAKEAWAY" : "DINE_IN");
+                if (orderType === "DINE_IN") {
+                    setSelectedTableId("");
+                }
+            }
+
+            // Number keys 1-9 - Quick add first 9 items
+            if (e.key >= '1' && e.key <= '9') {
+                const index = parseInt(e.key) - 1;
+                if (filteredItems[index]) {
+                    e.preventDefault();
+                    addToCart(filteredItems[index]);
+                }
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyPress);
+        return () => window.removeEventListener('keydown', handleKeyPress);
+    }, [cart, isCheckingOut, showPaymentModal, filteredItems, orderType]);
+
     return (
         <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             {/* Menu Grid */}
@@ -137,8 +188,25 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                     </div>
                  </div>
 
+                 {/* Category Filter */}
+                 <div className="flex gap-3 mb-8 overflow-x-auto pb-2 custom-scrollbar">
+                    {categories.map(category => (
+                        <button
+                            key={category}
+                            onClick={() => setSelectedCategory(category)}
+                            className={`px-6 py-3 rounded-2xl font-black text-xs uppercase tracking-widest transition-all whitespace-nowrap ${
+                                selectedCategory === category 
+                                    ? 'bg-primary text-black shadow-[0_5px_15px_rgba(245,158,11,0.2)]' 
+                                    : 'bg-slate-800/50 text-slate-400 border border-slate-700 hover:border-primary/50 hover:text-white'
+                            }`}
+                        >
+                            {category}
+                        </button>
+                    ))}
+                 </div>
+
                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {items.filter(i => i.available).map(item => (
+                    {filteredItems.map(item => (
                         <button 
                              key={item.id} 
                              onClick={() => addToCart(item)}
@@ -385,6 +453,17 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                     </div>
                 </div>
             )}
+
+            {/* Keyboard Shortcuts Hint */}
+            <div className="fixed bottom-4 right-4 glass-card rounded-2xl p-4 border-slate-800 max-w-xs hidden lg:block">
+                <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-2">Keyboard Shortcuts</h4>
+                <div className="space-y-1 text-[10px] text-slate-400 font-medium">
+                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">1-9</kbd> Quick add items</p>
+                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Enter</kbd> Checkout</p>
+                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Esc</kbd> Clear cart</p>
+                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Tab</kbd> Toggle order type</p>
+                </div>
+            </div>
         </div>
     );
 }
