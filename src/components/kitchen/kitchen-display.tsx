@@ -106,7 +106,11 @@ export default function KitchenDisplay({ initialOrders }: { initialOrders: Kitch
                     </h2>
                     <p className="text-slate-400 font-medium">Manage active cooking orders</p>
                 </div>
-                <div className="flex gap-4">
+                <div className="flex gap-4 items-center">
+                    <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-500">
+                        <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Live Sync</span>
+                    </div>
                     <div className="glass-card px-4 py-2 rounded-xl flex items-center gap-3 border border-slate-800">
                         <div className="flex flex-col items-end">
                             <span className="text-[8px] font-black text-slate-500 uppercase tracking-[0.2em] leading-none mb-1">Last Update</span>

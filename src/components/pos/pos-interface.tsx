@@ -8,17 +8,15 @@ import {
     Plus, 
     Minus, 
     ShoppingCart, 
-    Utensils,
+    Utensils, 
     X,
     CheckCircle2,
-    Users,
-    ChevronDown,
+    UtensilsCrossed,
     Truck,
     Coffee,
     CreditCard,
     Banknote,
-    ShieldCheck,
-    UtensilsCrossed
+    ShieldCheck
 } from "lucide-react";
 
 interface MenuItem {
@@ -37,18 +35,12 @@ interface CartItem {
     quantity: number;
 }
 
-interface Table {
-    id: string;
-    number: string;
-    status: string;
-}
 
-export default function POSInterface({ items, tables }: { items: MenuItem[], tables: Table[] }) {
+export default function POSInterface({ items }: { items: MenuItem[] }) {
     const [cart, setCart] = useState<CartItem[]>([]);
     const [isCheckingOut, setIsCheckingOut] = useState(false);
     const [lastOrderId, setLastOrderId] = useState<string | null>(null);
-    const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("DINE_IN");
-    const [selectedTableId, setSelectedTableId] = useState<string>("");
+    const [orderType, setOrderType] = useState<"DINE_IN" | "TAKEAWAY">("TAKEAWAY");
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [paymentMethod, setPaymentMethod] = useState<"CASH" | "CARD" | null>(null);
     const [isProcessingPayment, setIsProcessingPayment] = useState(false);
@@ -91,17 +83,11 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
     const handleCheckout = useCallback(async () => {
-        if (orderType === "DINE_IN" && !selectedTableId) {
-            toast.error("Please select a table for dine-in orders");
-            return;
-        }
-
         setIsCheckingOut(true);
         // Step 1: Create Order if not already created
         const result = await createOrder(
             cart.map(i => ({ menuItemId: i.menuItemId, quantity: i.quantity, price: i.price })), 
-            orderType, 
-            selectedTableId
+            orderType
         );
         setIsCheckingOut(false);
 
@@ -109,10 +95,95 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
             setActiveCartOrderId(result.orderId || null);
             setLastOrderId(result.orderId || null);
             setShowPaymentModal(true);
-        } else {
-            toast.error("Failed to place order: " + result.error);
         }
-    }, [orderType, selectedTableId, cart]);
+    }, [orderType, cart]);
+
+    const handlePrintReceipt = (orderId: string, total: number, method: string, items: CartItem[]) => {
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return;
+
+        printWindow.document.write(`
+            <html>
+                <head>
+                    <title>POS Receipt - ${orderId.slice(-6).toUpperCase()}</title>
+                    <style>
+                        @page { margin: 0; }
+                        body { 
+                            font-family: 'Courier New', Courier, monospace; 
+                            padding: 10px; 
+                            width: 58mm; 
+                            margin: 0 auto; 
+                            color: #000;
+                            line-height: 1.1;
+                            font-size: 10px;
+                        }
+                        .center { text-align: center; }
+                        .bold { font-weight: bold; }
+                        .black { font-weight: 900; }
+                        .header { margin-bottom: 12px; text-transform: uppercase; }
+                        .brand { font-size: 14px; letter-spacing: -1px; margin-bottom: 2px; }
+                        .subtitle { font-size: 7px; color: #666; letter-spacing: 0.5px; }
+                        .divider { border-top: 1px dashed #000; margin: 8px 0; }
+                        .meta { font-size: 9px; margin-bottom: 8px; }
+                        .meta-row { display: flex; justify-content: space-between; }
+                        .item-list { margin-bottom: 20px; }
+                        .item-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                        .totals { margin-top: 15px; }
+                        .total-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+                        .grand-total { font-size: 16px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #000; }
+                        .footer { margin-top: 30px; font-size: 9px; font-style: italic; }
+                    </style>
+                </head>
+                <body onload="window.print(); window.close();">
+                    <div class="header center">
+                        <div class="brand black">Olu's Kitchen</div>
+                        <div class="subtitle bold">Exceptional Dining Orchestrated</div>
+                        <div class="divider"></div>
+                    </div>
+
+                    <div class="meta">
+                        <div class="meta-row"><span>Ref:</span> <span class="bold">#${orderId.slice(-8).toUpperCase()}</span></div>
+                        <div class="meta-row"><span>Time:</span> <span>${new Date().toLocaleString()}</span></div>
+                        <div class="meta-row"><span>Type:</span> <span class="bold">${orderType}</span></div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="item-list">
+                        ${items.map(i => `
+                            <div class="item-row">
+                                <span style="flex: 1;">${i.name} (x${i.quantity})</span>
+                                <span class="bold">GH₵${(i.quantity * i.price).toFixed(2)}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="totals">
+                        <div class="total-row grand-total bold">
+                            <span>PAID TOTAL</span>
+                            <span>GH₵${total.toFixed(2)}</span>
+                        </div>
+                        <div class="total-row" style="margin-top: 10px;">
+                            <span>Method</span>
+                            <span class="bold uppercase">${method}</span>
+                        </div>
+                        <div class="total-row">
+                            <span>Status</span>
+                            <span class="bold uppercase">SETTLED</span>
+                        </div>
+                    </div>
+
+                    <div class="footer center">
+                        <p>Thank you for choosing Olu's Kitchen!</p>
+                        <p style="color: #999; margin-top: 10px;">PROCESSED BY VANTAGE RMS</p>
+                    </div>
+                </body>
+            </html>
+        `);
+        printWindow.document.close();
+    };
 
     const handlePayment = async () => {
         if (!activeCartOrderId || !paymentMethod) return;
@@ -123,9 +194,11 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
 
         if (result.success) {
             toast.success(result.message);
+            // Print receipt automatically
+            handlePrintReceipt(activeCartOrderId, total, paymentMethod, [...cart]);
+            
             setShowPaymentModal(false);
             setCart([]);
-            setSelectedTableId("");
             setActiveCartOrderId(null);
             setPaymentMethod(null);
         } else {
@@ -286,37 +359,12 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                             <button 
                                 onClick={() => {
                                     setOrderType("TAKEAWAY");
-                                    setSelectedTableId("");
                                 }}
                                 className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-xl font-black text-xs tracking-widest transition-all ${orderType === "TAKEAWAY" ? 'bg-primary text-black' : 'text-slate-500 hover:text-white'}`}
                             >
                                 <Truck className="w-4 h-4" /> TAKEAWAY
                             </button>
                         </div>
-
-                        {orderType === "DINE_IN" && (
-                            <div className="relative group">
-                                <Users className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
-                                <select 
-                                    value={selectedTableId}
-                                    onChange={(e) => setSelectedTableId(e.target.value)}
-                                    className="w-full bg-slate-800/50 border border-slate-700 rounded-2xl py-4 pl-12 pr-4 text-white font-bold outline-none appearance-none focus:border-primary/50 transition-all cursor-pointer"
-                                >
-                                    <option value="" className="bg-slate-900">Select Table</option>
-                                    {tables.map(table => (
-                                        <option 
-                                            key={table.id} 
-                                            value={table.id} 
-                                            disabled={table.status === "OCCUPIED" || table.status === "OUT_OF_ORDER"}
-                                            className="bg-slate-900"
-                                        >
-                                            Table {table.number} ({table.status})
-                                        </option>
-                                    ))}
-                                </select>
-                                <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500 pointer-events-none group-focus-within:text-primary transition-colors" />
-                            </div>
-                        )}
                     </div>
 
                     <div className="space-y-3">
@@ -370,7 +418,6 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                                 onClick={() => {
                                     setShowPaymentModal(false);
                                     setCart([]); // Clear cart since order is already placed
-                                    setSelectedTableId("");
                                     setActiveCartOrderId(null);
                                     toast.info("Order saved. Payment pending.");
                                 }}

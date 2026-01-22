@@ -1,5 +1,6 @@
 import LoginForm from "@/components/global/login-form";
-import { Utensils } from "lucide-react";
+import { Utensils, ShoppingBag } from "lucide-react";
+import Link from "next/link";
 
 export default function LoginPage() {
   return (
@@ -19,6 +20,13 @@ export default function LoginPage() {
             OLU&apos;S <span className="text-primary">KITCHEN </span>
           </h1>
           <p className="text-slate-400 font-bold uppercase tracking-[0.2em] text-[10px]">Professional Hospitality Suite v1.0</p>
+          <Link 
+            href="/menu" 
+            className="mt-6 flex items-center gap-2 px-4 py-2 bg-primary/10 text-primary hover:bg-primary hover:text-black transition-all rounded-full text-[10px] font-black uppercase tracking-widest border border-primary/20 hover:scale-105 active:scale-95"
+          >
+            <ShoppingBag className="w-3.5 h-3.5" />
+            Vist Digital Cafe
+          </Link>
         </div>
         
         <div className="glass-card rounded-[2.5rem] p-1 shadow-2xl">

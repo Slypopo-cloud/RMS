@@ -16,6 +16,7 @@ model User {
   name      String
   role      String   @default("CASHIER") // ADMIN, MANAGER, CASHIER, KITCHEN_STAFF
   orders    Order[]
+  shifts    Shift[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -140,4 +141,16 @@ model Payment {
   reference String? // Transaction ID from provider
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Shift {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  startTime DateTime  @default(now())
+  endTime   DateTime?
+  status    String    @default("ACTIVE") // ACTIVE, COMPLETED
+  notes     String?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 }

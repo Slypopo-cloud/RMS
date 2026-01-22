@@ -12,7 +12,8 @@ import {
   AlertTriangle,
   FileText,
   ChevronRight,
-  Users
+  Users,
+  Briefcase
 } from "lucide-react";
 import { getDashboardStats } from "@/actions/analytics";
 import { RestockButton } from "@/components/global/restock-button";
@@ -43,6 +44,14 @@ export default async function DashboardPage() {
       color: "bg-orange-500",
       description: "View and manage active orders",
       allowedRoles: ["ADMIN", "MANAGER", "KITCHEN_STAFF"]
+    },
+    {
+      title: "Staff Portal",
+      href: "/dashboard/shifts",
+      icon: Briefcase,
+      color: "bg-cyan-500",
+      description: "Manage duty cycles and attendance",
+      allowedRoles: ["ADMIN", "MANAGER", "CASHIER", "KITCHEN_STAFF"]
     },
     {
       title: "Order History",

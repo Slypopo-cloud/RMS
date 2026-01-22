@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getSalesReport, exportSalesReportCSV, getTopSellingItems, getHourlySales, getCategoryRevenue, getStaffPerformance } from "@/actions/analytics";
+import { getSalesReport, exportSalesReportCSV, getTopSellingItems, getHourlySales, getCategoryRevenue, getStaffPerformance, getLaborAnalytics } from "@/actions/analytics";
 import { 
   Calendar as CalendarIcon, 
   Download,
@@ -10,7 +10,8 @@ import {
   CreditCard,
   ShoppingBag,
   Award,
-  PieChart
+  PieChart,
+  Briefcase
 } from "lucide-react";
 import { toast } from "sonner";
 
@@ -67,6 +68,7 @@ export default function ReportsPage() {
     const [hourlyData, setHourlyData] = useState<HourlyData[]>([]);
     const [categoryData, setCategoryData] = useState<{category: string; revenue: number; itemsSold: number}[]>([]);
     const [staffData, setStaffData] = useState<{name: string; orderCount: number; revenue: number}[]>([]);
+    const [laborData, setLaborData] = useState<{totalHours: number; estLaborCost: number; shiftCount: number}>({ totalHours: 0, estLaborCost: 0, shiftCount: 0 });
     const [isLoading, setIsLoading] = useState(true);
     const [activePreset, setActivePreset] = useState<string | null>(null);
 
@@ -121,12 +123,13 @@ export default function ReportsPage() {
 
     const fetchReports = useCallback(async () => {
         setIsLoading(true);
-        const [salesResult, topResult, hourlyResult, categoryResult, staffResult] = await Promise.all([
+        const [salesResult, topResult, hourlyResult, categoryResult, staffResult, laborResult] = await Promise.all([
             getSalesReport(startDate, endDate),
             getTopSellingItems(startDate, endDate),
             getHourlySales(startDate, endDate),
             getCategoryRevenue(startDate, endDate),
-            getStaffPerformance(startDate, endDate)
+            getStaffPerformance(startDate, endDate),
+            getLaborAnalytics(startDate, endDate)
         ]);
 
         if (salesResult.success) {
@@ -149,6 +152,10 @@ export default function ReportsPage() {
 
         if (staffResult.success) {
             setStaffData((staffResult.data as {name: string; orderCount: number; revenue: number}[]) || []);
+        }
+
+        if (laborResult.success && laborResult.data) {
+            setLaborData(laborResult.data);
         }
 
         setIsLoading(false);
@@ -270,6 +277,18 @@ export default function ReportsPage() {
                     </p>
                     <p className="text-3xl font-black text-white">
                         GH₵{orders.length > 0 ? (totalRevenue / orders.length).toFixed(2) : "0.00"}
+                    </p>
+                </div>
+
+                <div className="glass-card rounded-3xl p-8 flex flex-col justify-center border-red-500/20 bg-red-500/5 transition-all hover:scale-105">
+                    <p className="text-[10px] font-black text-red-500/60 uppercase tracking-widest mb-1 flex items-center gap-2">
+                        <Briefcase className="w-3 h-3" /> Est. Labor
+                    </p>
+                    <p className="text-3xl font-black text-white">
+                        GH₵{laborData.estLaborCost.toFixed(2)}
+                    </p>
+                    <p className="text-[10px] font-bold text-slate-500 uppercase mt-1">
+                        {laborData.totalHours} Duty Hours • {laborData.shiftCount} Cycles
                     </p>
                 </div>
             </div>

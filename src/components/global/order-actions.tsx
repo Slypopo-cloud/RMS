@@ -44,9 +44,6 @@ export function OrderActions({ order }: OrderActionsProps) {
   };
 
   const handlePrint = () => {
-    const printContent = document.getElementById(`receipt-${order.id}`);
-    if (!printContent) return;
-
     const printWindow = window.open('', '_blank');
     if (!printWindow) return;
 
@@ -55,46 +52,77 @@ export function OrderActions({ order }: OrderActionsProps) {
         <head>
           <title>Receipt - ${order.id.slice(-6).toUpperCase()}</title>
           <style>
-            body { font-family: 'Courier New', Courier, monospace; padding: 20px; max-width: 300px; margin: auto; }
-            .header { text-align: center; border-bottom: 1px dashed #000; padding-bottom: 10px; margin-bottom: 10px; }
-            .item { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; }
-            .total { border-top: 1px dashed #000; margin-top: 10px; padding-top: 10px; font-weight: bold; }
-            .footer { text-align: center; margin-top: 20px; font-size: 12px; }
-            .b { font-weight: bold; }
+            @page { margin: 0; }
+            body { 
+                font-family: 'Courier New', Courier, monospace; 
+                padding: 10px; 
+                width: 58mm; 
+                margin: 0 auto; 
+                color: #000;
+                line-height: 1.1;
+                font-size: 10px;
+            }
+            .center { text-align: center; }
+            .bold { font-weight: bold; }
+            .black { font-weight: 900; }
+            .header { margin-bottom: 12px; text-transform: uppercase; }
+            .brand { font-size: 14px; letter-spacing: -1px; margin-bottom: 2px; }
+            .subtitle { font-size: 7px; color: #666; letter-spacing: 0.5px; }
+            .divider { border-top: 1px dashed #000; margin: 8px 0; }
+            .meta { font-size: 9px; margin-bottom: 8px; }
+            .meta-row { display: flex; justify-content: space-between; }
+            .item-list { margin-bottom: 20px; }
+            .item-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .totals { margin-top: 15px; }
+            .total-row { display: flex; justify-content: space-between; margin-bottom: 4px; }
+            .grand-total { font-size: 16px; margin-top: 10px; padding-top: 10px; border-top: 1px solid #000; }
+            .footer { margin-top: 30px; font-size: 9px; font-style: italic; }
+            .status-badge { background: #eee; padding: 2px 6px; border-radius: 4px; font-size: 9px; }
           </style>
         </head>
         <body onload="window.print(); window.close();">
-          <div class="header">
-            <h2 style="margin: 0;">VANTAGE RMS</h2>
-            <div style="font-size: 12px;">Professional Hospitality</div>
-            <div style="font-size: 10px; margin-top: 5px;">${new Date(order.createdAt).toLocaleString()}</div>
+          <div class="header center">
+            <div class="brand black">Olu's Kitchen</div>
+            <div class="subtitle bold">Exceptional Dining Orchestrated</div>
+            <div class="divider"></div>
           </div>
-          <div>
-            <div class="item b">
-              <span>Item</span>
-              <span>Total</span>
-            </div>
+
+          <div class="meta">
+            <div class="meta-row"><span>Order Ref:</span> <span class="bold">#${order.id.slice(-8).toUpperCase()}</span></div>
+            <div class="meta-row"><span>Timestamp:</span> <span>${new Date(order.createdAt).toLocaleString()}</span></div>
+            ${order.restaurantTable ? `<div class="meta-row"><span>Table:</span> <span class="bold">No. ${order.restaurantTable.number}</span></div>` : ''}
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="item-list">
             ${order.items.map(i => `
-              <div class="item">
-                <span>${i.quantity}x ${i.menuItem.name}</span>
-                <span>GH₵{(i.quantity * (i.menuItem.price || 0)).toFixed(2)}</span>
+              <div class="item-row">
+                <span style="flex: 1;">${i.menuItem.name} <span style="font-size: 10px; color: #666;">(x${i.quantity})</span></span>
+                <span class="bold">GH₵${(i.quantity * i.menuItem.price).toFixed(2)}</span>
               </div>
             `).join('')}
           </div>
-          <div class="total">
-            <div class="item">
+
+          <div class="divider"></div>
+
+          <div class="totals">
+            <div class="total-row grand-total bold">
               <span>NET TOTAL</span>
-              <span>GH₵{order.totalAmount.toFixed(2)}</span>
+              <span>GH₵${order.totalAmount.toFixed(2)}</span>
             </div>
-            <div class="item">
-              <span>STATUS</span>
-              <span>${order.paymentStatus}</span>
+            <div class="total-row" style="margin-top: 10px;">
+              <span>Payment Status</span>
+              <span class="status-badge bold">${order.paymentStatus}</span>
             </div>
           </div>
-          <div class="footer">
-            <div>Order ID: ${order.id.slice(-6).toUpperCase()}</div>
-            ${order.restaurantTable ? `<div>Table: ${order.restaurantTable.number}</div>` : ''}
-            <div style="margin-top: 10px;">Thank you for your visit!</div>
+
+          <div class="footer center">
+            <p>Thank you for choosing Olu's Kitchen!</p>
+            <div style="opacity: 0.1; margin-top: 10px;">
+                -----------------------------------
+            </div>
+            <p style="color: #999; margin-top: 10px;">PROCESSED BY VANTAGE RMS</p>
           </div>
         </body>
       </html>

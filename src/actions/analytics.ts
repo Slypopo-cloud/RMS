@@ -325,3 +325,42 @@ export async function getStaffPerformance(startDate: Date, endDate: Date) {
         return { success: false, error: "Failed to fetch staff performance" };
     }
 }
+
+export async function getLaborAnalytics(startDate: Date, endDate: Date) {
+    const session = await auth();
+    if (session?.user?.role !== "ADMIN" && session?.user?.role !== "MANAGER") {
+        return { success: false, error: "Unauthorized" };
+    }
+
+    try {
+        const shifts = await prisma.shift.findMany({
+            where: {
+                startTime: { gte: startDate },
+                endTime: { lte: endDate, not: null }
+            }
+        });
+
+        let totalMinutes = 0;
+        shifts.forEach(shift => {
+            if (shift.endTime) {
+                totalMinutes += (new Date(shift.endTime).getTime() - new Date(shift.startTime).getTime()) / 60000;
+            }
+        });
+
+        const totalHours = totalMinutes / 60;
+        const estHourlyRate = 25; // Placeholder GH₵ per hour
+        const estLaborCost = totalHours * estHourlyRate;
+
+        return { 
+            success: true, 
+            data: { 
+                totalHours: parseFloat(totalHours.toFixed(1)), 
+                estLaborCost: parseFloat(estLaborCost.toFixed(2)),
+                shiftCount: shifts.length
+            } 
+        };
+    } catch (error) {
+        console.error("Labor Analytics Error:", error);
+        return { success: false, error: "Failed to fetch labor data" };
+    }
+}
