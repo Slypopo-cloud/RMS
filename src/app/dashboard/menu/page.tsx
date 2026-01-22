@@ -25,6 +25,7 @@ interface UIMenuItemSimple {
 }
 
 interface UIMenuItemWithCategory extends UIMenuItemSimple {
+    image: string | null;
     category: UIMenuCategory;
 }
 

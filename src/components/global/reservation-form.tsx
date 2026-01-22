@@ -44,7 +44,7 @@ export default function ReservationForm({ tables, onSuccess, onCancel }: Reserva
       } else {
         toast.error(result.error as string || "Failed to create reservation");
       }
-    } catch (err) {
+    } catch {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);

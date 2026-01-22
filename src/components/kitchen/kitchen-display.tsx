@@ -1,7 +1,7 @@
 "use client";
 
 import { updateOrderStatus } from "@/actions/order";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { 
     Clock, 
@@ -37,19 +37,19 @@ export default function KitchenDisplay({ initialOrders }: { initialOrders: Kitch
     const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
     const [isRefreshing, setIsRefreshing] = useState(false);
 
+    const handleRefresh = useCallback(async () => {
+        setIsRefreshing(true);
+        router.refresh();
+        setLastUpdated(new Date());
+        setTimeout(() => setIsRefreshing(false), 1000);
+    }, [router]);
+
     useEffect(() => {
         const interval = setInterval(() => {
             handleRefresh();
         }, 30000); // Polling every 30s instead of 10s to be less aggressive
         return () => clearInterval(interval);
-    }, [router]);
-
-    const handleRefresh = async () => {
-        setIsRefreshing(true);
-        router.refresh();
-        setLastUpdated(new Date());
-        setTimeout(() => setIsRefreshing(false), 1000);
-    };
+    }, [handleRefresh]);
 
     const handleStatusUpdate = async (orderId: string, newStatus: string) => {
         setUpdatingId(orderId);

@@ -26,7 +26,7 @@ export default function LoginPage() {
         </div>
         
         <p className="mt-8 text-center text-slate-500 text-xs font-medium">
-          &copy; 2026 Olu's Kitchen • Exceptional Dining Experience
+          &copy; 2026 Olu&apos;s Kitchen • Exceptional Dining Experience
         </p>
       </div>
     </main>

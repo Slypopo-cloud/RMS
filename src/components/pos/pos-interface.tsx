@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { createOrder, processPayment } from "@/actions/order";
 import { toast } from "sonner";
 import { 
@@ -89,7 +89,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
 
     const total = cart.reduce((sum, item) => sum + (item.price * item.quantity), 0);
 
-    const handleCheckout = async () => {
+    const handleCheckout = useCallback(async () => {
         if (orderType === "DINE_IN" && !selectedTableId) {
             toast.error("Please select a table for dine-in orders");
             return;
@@ -111,7 +111,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
         } else {
             toast.error("Failed to place order: " + result.error);
         }
-    };
+    }, [orderType, selectedTableId, cart]);
 
     const handlePayment = async () => {
         if (!activeCartOrderId || !paymentMethod) return;
@@ -174,7 +174,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
 
         window.addEventListener('keydown', handleKeyPress);
         return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [cart, isCheckingOut, showPaymentModal, filteredItems, orderType]);
+    }, [cart, isCheckingOut, showPaymentModal, filteredItems, orderType, handleCheckout]);
 
     return (
         <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">

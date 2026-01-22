@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { UserPlus, Trash2, Shield, User, Mail, ShieldCheck, Briefcase, ShoppingCart, Utensils, X, Loader2 } from "lucide-react";
+import { UserPlus, Trash2, User, Mail, ShieldCheck, Briefcase, ShoppingCart, Utensils, X, Loader2 } from "lucide-react";
 import { createUser, deleteUser } from "@/actions/user";
 import { toast } from "sonner";
 
@@ -16,7 +16,7 @@ interface UserData {
 
 export function UserManager({ initialUsers }: { initialUsers: UserData[] }) {
   const [isAdding, setIsAdding] = useState(false);
-  const [users, setUsers] = useState(initialUsers);
+  const [users] = useState(initialUsers);
   const [isPending, setIsPending] = useState(false);
 
   const handleAddUser = async (e: React.FormEvent<HTMLFormElement>) => {

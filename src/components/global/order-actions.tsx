@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CreditCard, Banknote, Printer, CheckCircle2, X, Loader2, Receipt } from "lucide-react";
+import { CreditCard, Banknote, Printer, X, Loader2, Receipt } from "lucide-react";
 import { processPayment } from "@/actions/order";
 import { toast } from "sonner";
 
@@ -23,7 +23,6 @@ interface OrderActionsProps {
 export function OrderActions({ order }: OrderActionsProps) {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [showReceipt, setShowReceipt] = useState(false);
 
   const handlePayment = async (method: "CASH" | "CARD") => {
     setIsProcessing(true);
@@ -37,7 +36,7 @@ export function OrderActions({ order }: OrderActionsProps) {
       } else {
         toast.error(result.error);
       }
-    } catch (error) {
+    } catch {
       toast.error("An unexpected error occurred");
     } finally {
       setIsProcessing(false);

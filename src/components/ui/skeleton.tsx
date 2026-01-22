@@ -40,13 +40,16 @@ export function StatCardSkeleton() {
 }
 
 export function ChartSkeleton() {
+    // Use static widths to avoid impure Math.random() in render
+    const widths = ['60%', '75%', '85%', '70%', '80%'];
+    
     return (
         <div className="glass-card rounded-3xl p-8 border-slate-800">
             <Skeleton className="h-6 w-48 mb-6" />
             <div className="space-y-4">
                 {Array.from({ length: 5 }).map((_, i) => (
                     <div key={i} className="flex items-center gap-4">
-                        <Skeleton className="h-3 flex-1" style={{ width: `${Math.random() * 50 + 50}%` }} />
+                        <Skeleton className="h-3 flex-1" style={{ width: widths[i] }} />
                     </div>
                 ))}
             </div>

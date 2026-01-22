@@ -54,8 +54,8 @@ export async function createUser(formData: FormData) {
 
     revalidatePath("/dashboard/users");
     return { success: true };
-  } catch (error: any) {
-    if (error.code === 'P2002') {
+  } catch (error: unknown) {
+    if (error && typeof error === 'object' && 'code' in error && error.code === 'P2002') {
       return { error: "Email or username already exists" };
     }
     return { error: "Failed to create user" };
@@ -80,7 +80,7 @@ export async function deleteUser(id: string) {
 
     revalidatePath("/dashboard/users");
     return { success: true };
-  } catch (error) {
+  } catch {
     return { error: "Failed to delete user" };
   }
 }
