@@ -1,6 +1,6 @@
 "use client";
 
-import { useActionState, useState } from "react";
+import { useActionState, useState, useRef, useEffect } from "react";
 import { createMenuItem, deleteMenuItem, toggleItemAvailability } from "@/actions/menu";
 import { 
     UtensilsCrossed, 
@@ -9,9 +9,12 @@ import {
     DollarSign, 
     Power,
     Settings,
-    AlertCircle
+    AlertCircle,
+    Upload,
+    X
 } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface Category {
   id: string;
@@ -31,6 +34,43 @@ interface MenuItem {
 export default function ItemManager({ items, categories }: { items: MenuItem[]; categories: Category[] }) {
   const [state, action, isPending] = useActionState(createMenuItem, null);
   const [isDeleting, setIsDeleting] = useState<string | null>(null);
+  const [preview, setPreview] = useState<string | null>(null);
+  const [showAddModal, setShowAddModal] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (state?.success) {
+      setTimeout(() => {
+          setPreview(null);
+          if (fileInputRef.current) fileInputRef.current.value = "";
+          setShowAddModal(false);
+      }, 0);
+      toast.success(state.message || "Item created successfully");
+    }
+  }, [state]);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Image too large. Max size is 5MB.");
+        e.target.value = "";
+        return;
+      }
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreview(null);
+    }
+  };
+
+  const removePreview = () => {
+    setPreview(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
 
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure? This item will be permanently erased.")) return;
@@ -53,111 +93,168 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
 
   return (
     <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-      {/* Add New Item Form */}
-      <div className="glass-card p-8 rounded-3xl relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-primary/5 blur-3xl rounded-full"></div>
-        <div className="flex items-center gap-3 mb-8">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <UtensilsCrossed className="w-5 h-5" />
+      {/* Add New Item Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-slate-950/80 backdrop-blur-xl animate-in fade-in duration-300">
+          <div className="glass-card w-full max-w-2xl rounded-[2.5rem] p-10 border-primary/20 shadow-[0_20px_60px_rgba(0,0,0,0.5)] relative overflow-hidden animate-in zoom-in-95 duration-300 max-h-[90vh] overflow-y-auto custom-scrollbar">
+            <div className="absolute top-0 right-0 w-32 h-32 -mr-16 -mt-16 bg-primary/10 blur-3xl rounded-full"></div>
+            
+            <div className="flex justify-between items-center mb-8 relative z-10">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                        <UtensilsCrossed className="w-5 h-5" />
+                    </div>
+                    <h3 className="text-2xl font-black text-white tracking-tight">Engineer Menu Item</h3>
+                </div>
+                <button 
+                  onClick={() => setShowAddModal(false)}
+                  className="w-10 h-10 rounded-full bg-slate-800/50 flex items-center justify-center text-slate-400 hover:bg-red-500 hover:text-white transition-all shadow-lg"
+                >
+                  <X className="w-5 h-5" />
+                </button>
             </div>
-            <h3 className="text-2xl font-black text-white tracking-tight">Engineer Menu Item</h3>
-        </div>
 
-        <form action={action} className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Identity</label>
-            <input 
-                name="name" 
-                type="text" 
-                required 
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
-                placeholder="Item Designation" 
-            />
-          </div>
-          
-           <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Classification</label>
-            <select 
-                name="categoryId" 
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium appearance-none cursor-pointer"
-            >
-                {categories.map(c => (
-                    <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
-                ))}
-            </select>
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Value (GH₵)</label>
-            <div className="relative">
-                <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+            <form action={action} className="grid grid-cols-1 md:grid-cols-2 gap-8 relative z-10">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Identity</label>
                 <input 
-                    name="price" 
-                    type="number" 
-                    step="0.01" 
+                    name="name" 
+                    type="text" 
                     required 
-                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-black text-lg" 
-                    placeholder="0.00" 
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
+                    placeholder="Item Designation" 
                 />
-            </div>
-          </div>
+              </div>
+              
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Classification</label>
+                <select 
+                    name="categoryId" 
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium appearance-none cursor-pointer"
+                >
+                    {categories.map(c => (
+                        <option key={c.id} value={c.id} className="bg-slate-900">{c.name}</option>
+                    ))}
+                </select>
+              </div>
 
-          <div className="space-y-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Image URL (Optional)</label>
-            <input 
-                name="image" 
-                type="url" 
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
-                placeholder="https://example.com/food-image.jpg" 
-            />
-            <p className="text-[9px] text-slate-500 ml-1">Paste a link to your dish photo</p>
-          </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Value (GH₵)</label>
+                <div className="relative">
+                    <DollarSign className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                    <input 
+                        name="price" 
+                        type="number" 
+                        step="0.01" 
+                        required 
+                        className="w-full bg-slate-800/50 border border-slate-700 rounded-xl py-3 pl-10 pr-4 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-black text-lg" 
+                        placeholder="0.00" 
+                    />
+                </div>
+              </div>
 
-          <div className="space-y-2 md:col-span-2">
-            <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Culinary Description</label>
-            <textarea 
-                name="description" 
-                className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
-                rows={3} 
-                placeholder="Optional taste profile and notes..."
-            ></textarea>
-          </div>
-          
-          <div className="flex items-center gap-4 bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
-                <input 
-                    type="checkbox" 
-                    name="available" 
-                    id="available" 
-                    defaultChecked 
-                    className="w-5 h-5 rounded-lg accent-primary cursor-pointer"
-                />
-                <label htmlFor="available" className="text-sm font-black text-white uppercase tracking-widest cursor-pointer">Live in Catalog</label>
-          </div>
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Dish Visual (Optional)</label>
+                <div className="relative group/upload">
+                    <input 
+                        ref={fileInputRef}
+                        name="image" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={handleImageChange}
+                        className="hidden" 
+                        id="image-upload"
+                    />
+                    <label 
+                        htmlFor="image-upload"
+                        className="flex flex-col items-center justify-center w-full h-[52px] bg-slate-800/50 border border-slate-700 border-dashed rounded-xl cursor-pointer hover:border-primary/50 hover:bg-slate-800/80 transition-all group"
+                    >
+                        <div className="flex items-center gap-2 text-slate-400 group-hover:text-primary transition-colors">
+                            <Upload className="w-4 h-4" />
+                            <span className="text-xs font-bold uppercase tracking-widest">
+                                {preview ? "Change Masterpiece" : "Upload Visual"}
+                            </span>
+                        </div>
+                    </label>
 
-          <div className="md:col-span-2 mt-4 pt-4 border-t border-slate-800">
-             <button
-                type="submit"
-                disabled={isPending}
-                className="bg-primary hover:bg-amber-400 text-black px-12 py-3.5 rounded-2xl disabled:opacity-50 text-sm font-black uppercase tracking-widest transition-all shadow-[0_10px_20px_rgba(245,158,11,0.1)] active:scale-95 flex items-center gap-2"
-            >
-                <Plus className="w-5 h-5" />
-                {isPending ? "ARCHITECTING..." : "COMMIT TO MENU"}
-            </button>
+                    {preview && (
+                        <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                            <div className="relative w-8 h-8 rounded-lg overflow-hidden border border-slate-700 shadow-xl">
+                                <Image 
+                                    src={preview} 
+                                    alt="Preview" 
+                                    fill 
+                                    className="object-cover"
+                                />
+                            </div>
+                            <button 
+                                type="button"
+                                onClick={removePreview}
+                                className="p-1.5 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500/20 transition-all"
+                            >
+                                <X className="w-3 h-3" />
+                            </button>
+                        </div>
+                    )}
+                </div>
+              </div>
+
+              <div className="space-y-2 md:col-span-2">
+                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Culinary Description</label>
+                <textarea 
+                    name="description" 
+                    className="w-full bg-slate-800/50 border border-slate-700 rounded-xl px-4 py-3 text-white placeholder:text-slate-600 focus:border-primary/50 focus:ring-1 focus:ring-primary/50 outline-none transition-all font-medium" 
+                    rows={3} 
+                    placeholder="Optional taste profile and notes..."
+                ></textarea>
+              </div>
+              
+              <div className="flex items-center gap-4 bg-slate-800/30 p-4 rounded-2xl border border-slate-800">
+                    <input 
+                        type="checkbox" 
+                        name="available" 
+                        id="available" 
+                        defaultChecked 
+                        className="w-5 h-5 rounded-lg accent-primary cursor-pointer"
+                    />
+                    <label htmlFor="available" className="text-sm font-black text-white uppercase tracking-widest cursor-pointer">Live in Catalog</label>
+              </div>
+
+              <div className="md:col-span-2 mt-4 pt-4 border-t border-slate-800">
+                <button
+                    type="submit"
+                    disabled={isPending}
+                    className="w-full bg-primary hover:bg-amber-400 text-black px-12 py-3.5 rounded-2xl disabled:opacity-50 text-sm font-black uppercase tracking-widest transition-all shadow-[0_10px_20px_rgba(245,158,11,0.1)] active:scale-95 flex items-center justify-center gap-2"
+                >
+                    {isPending ? <div className="w-5 h-5 border-2 border-black/30 border-t-black rounded-full animate-spin" /> : <Plus className="w-5 h-5" />}
+                    {isPending ? "ARCHITECTING..." : "COMMIT TO MENU"}
+                </button>
+              </div>
+              {state?.error && (
+                <div className="md:col-span-2 mt-4 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-500 text-xs font-bold flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4" />
+                    Error: {typeof state.error === 'string' ? state.error : "Deployment Error"}
+                </div>
+              )}
+            </form>
           </div>
-           {state?.error && (
-            <div className="md:col-span-2 mt-4 bg-red-500/10 border border-red-500/20 p-4 rounded-xl text-red-500 text-xs font-bold flex items-center gap-2">
-                 <AlertCircle className="w-4 h-4" />
-                Error: {typeof state.error === 'string' ? state.error : "Deployment Error"}
-            </div>
-        )}
-        </form>
-      </div>
+        </div>
+      )}
 
       {/* Items List */}
       <div className="glass-card rounded-3xl overflow-hidden shadow-2xl border-slate-800">
-        <div className="p-8 border-b border-slate-800 bg-slate-900/40 flex items-center gap-3">
-             <Settings className="w-6 h-6 text-primary" />
-             <h3 className="text-xl font-black text-white tracking-tight">Menu Catalog</h3>
+        <div className="p-8 border-b border-slate-800 bg-slate-900/40 flex items-center justify-between">
+             <div className="flex items-center gap-3">
+                <Settings className="w-6 h-6 text-primary" />
+                <h3 className="text-xl font-black text-white tracking-tight">Menu Catalog</h3>
+             </div>
+             <button
+                onClick={() => setShowAddModal(true)}
+                className="bg-primary hover:bg-amber-400 text-black px-6 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shadow-lg active:scale-95 flex items-center gap-2"
+             >
+                <Plus className="w-4 h-4" />
+                New Menu Item
+             </button>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-slate-800">
@@ -176,11 +273,14 @@ export default function ItemManager({ items, categories }: { items: MenuItem[]; 
                   <td className="px-8 py-6 whitespace-nowrap">
                     <div className="flex items-center gap-4">
                         {item.image ? (
-                            <img 
-                                src={item.image} 
-                                alt={item.name}
-                                className="w-16 h-16 rounded-lg object-cover border-2 border-slate-700"
-                            />
+                            <div className="relative w-16 h-16 rounded-lg overflow-hidden border-2 border-slate-700 shadow-lg group-hover:border-primary/30 transition-all">
+                                <Image 
+                                    src={item.image} 
+                                    alt={item.name}
+                                    fill
+                                    className="object-cover group-hover:scale-110 transition-transform duration-500"
+                                />
+                            </div>
                         ) : (
                             <div className="w-16 h-16 rounded-lg bg-slate-800 flex items-center justify-center border-2 border-slate-700">
                                 <UtensilsCrossed className="w-6 h-6 text-slate-600" />

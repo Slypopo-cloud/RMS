@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { createOrder, processPayment } from "@/actions/order";
 import { toast } from "sonner";
+import Image from "next/image";
 import { 
     Plus, 
     Minus, 
@@ -132,49 +133,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
         }
     };
 
-    // Keyboard shortcuts
-    useEffect(() => {
-        const handleKeyPress = (e: KeyboardEvent) => {
-            // Ignore if typing in an input field
-            if (e.target instanceof HTMLInputElement || e.target instanceof HTMLSelectElement) {
-                return;
-            }
 
-            // Enter - Checkout
-            if (e.key === 'Enter' && cart.length > 0 && !isCheckingOut) {
-                e.preventDefault();
-                handleCheckout();
-            }
-
-            // Escape - Clear cart
-            if (e.key === 'Escape' && cart.length > 0) {
-                e.preventDefault();
-                setCart([]);
-                toast.info("Cart cleared");
-            }
-
-            // Tab - Toggle order type
-            if (e.key === 'Tab' && !showPaymentModal) {
-                e.preventDefault();
-                setOrderType(prev => prev === "DINE_IN" ? "TAKEAWAY" : "DINE_IN");
-                if (orderType === "DINE_IN") {
-                    setSelectedTableId("");
-                }
-            }
-
-            // Number keys 1-9 - Quick add first 9 items
-            if (e.key >= '1' && e.key <= '9') {
-                const index = parseInt(e.key) - 1;
-                if (filteredItems[index]) {
-                    e.preventDefault();
-                    addToCart(filteredItems[index]);
-                }
-            }
-        };
-
-        window.addEventListener('keydown', handleKeyPress);
-        return () => window.removeEventListener('keydown', handleKeyPress);
-    }, [cart, isCheckingOut, showPaymentModal, filteredItems, orderType, handleCheckout]);
 
     return (
         <div className="flex flex-col lg:flex-row h-[calc(100vh-140px)] gap-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -217,10 +176,11 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                             {/* Image Section */}
                             <div className="h-32 bg-slate-800/50 relative overflow-hidden">
                                 {item.image ? (
-                                    <img 
+                                    <Image 
                                         src={item.image} 
                                         alt={item.name}
-                                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
+                                        fill
+                                        className="object-cover group-hover:scale-110 transition-transform duration-300"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-slate-800 to-slate-900">
@@ -469,16 +429,7 @@ export default function POSInterface({ items, tables }: { items: MenuItem[], tab
                 </div>
             )}
 
-            {/* Keyboard Shortcuts Hint */}
-            <div className="fixed bottom-4 right-4 glass-card rounded-2xl p-4 border-slate-800 max-w-xs hidden lg:block">
-                <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-2">Keyboard Shortcuts</h4>
-                <div className="space-y-1 text-[10px] text-slate-400 font-medium">
-                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">1-9</kbd> Quick add items</p>
-                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Enter</kbd> Checkout</p>
-                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Esc</kbd> Clear cart</p>
-                    <p><kbd className="bg-slate-800 px-1.5 py-0.5 rounded text-white font-bold">Tab</kbd> Toggle order type</p>
-                </div>
-            </div>
+
         </div>
     );
 }

@@ -7,7 +7,7 @@ import { auth } from "@/auth";
 
 export async function fetchUsers() {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MANAGER")) {
+  if (!session?.user || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
@@ -26,7 +26,7 @@ export async function fetchUsers() {
 
 export async function createUser(formData: FormData) {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MANAGER")) {
+  if (!session?.user || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 
@@ -64,7 +64,7 @@ export async function createUser(formData: FormData) {
 
 export async function deleteUser(id: string) {
   const session = await auth();
-  if (!session?.user || (session.user.role !== "ADMIN" && session.user.role !== "MANAGER")) {
+  if (!session?.user || session.user.role !== "ADMIN") {
     throw new Error("Unauthorized");
   }
 

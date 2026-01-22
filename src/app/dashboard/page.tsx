@@ -90,7 +90,7 @@ export default async function DashboardPage() {
       icon: Users,
       color: "bg-indigo-500",
       description: "Manage operator access and roles",
-      allowedRoles: ["ADMIN", "MANAGER"]
+      allowedRoles: ["ADMIN"]
     },
   ];
 
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-10 p-6 glass-card rounded-2xl">
         <div>
            <h1 className="text-4xl font-extrabold tracking-tight text-white mb-2">
-            Vantage <span className="text-primary">RMS</span>
+            Olu&apos;s <span className="text-primary">Kitchen</span>
            </h1>
            <p className="text-slate-400 font-medium">Welcome back, {session?.user?.name || "User"} • <span className="text-primary/80 uppercase text-xs tracking-widest ml-1">{role || "Guest"}</span></p>
         </div>
